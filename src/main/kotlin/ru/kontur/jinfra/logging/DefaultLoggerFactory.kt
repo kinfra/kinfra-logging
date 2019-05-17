@@ -29,16 +29,23 @@ fun ContextLogger.Companion.forClass(kClass: KClass<*>): ContextLogger {
     return DefaultLoggerFactory.getContextLogger(kClass)
 }
 
-// inline is required for lookup() to work correctly
 @Suppress("NOTHING_TO_INLINE")
 inline fun Logger.Companion.currentClass(): Logger {
-    val currentClass = MethodHandles.lookup().lookupClass()
+    val currentClass = getCallingClass()
     return DefaultLoggerFactory.getLogger(currentClass.kotlin)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun ContextLogger.Companion.currentClass(): ContextLogger {
+    val currentClass = getCallingClass()
+    return DefaultLoggerFactory.getContextLogger(currentClass.kotlin)
 }
 
 // inline is required for lookup() to work correctly
 @Suppress("NOTHING_TO_INLINE")
-inline fun ContextLogger.Companion.currentClass(): ContextLogger {
+@PublishedApi
+internal inline fun getCallingClass(): Class<*> {
     val currentClass = MethodHandles.lookup().lookupClass()
-    return DefaultLoggerFactory.getContextLogger(currentClass.kotlin)
+    // skip companion
+    return currentClass.enclosingClass ?: currentClass
 }

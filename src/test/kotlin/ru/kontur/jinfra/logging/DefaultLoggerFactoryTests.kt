@@ -24,4 +24,15 @@ class DefaultLoggerFactoryTests {
         }
     }
 
+    @Test
+    fun companion_current_class_logger() {
+        companionLogger.info { "Log message" }
+    }
+
+    companion object {
+
+        private val companionLogger = Logger.currentClass()
+
+    }
+
 }
