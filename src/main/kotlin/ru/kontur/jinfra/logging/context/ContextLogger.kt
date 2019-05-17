@@ -47,6 +47,10 @@ class ContextLogger(
         backend.log(level, message, error, context[LoggingContext] ?: LoggingContext.EMPTY)
     }
 
+    override fun toString(): String {
+        return "ContextLogger(backend: $backend)"
+    }
+
     companion object {
 
         fun backedBy(backend: LoggerBackend): ContextLogger = ContextLogger(backend)
