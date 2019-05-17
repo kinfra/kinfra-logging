@@ -1,15 +1,18 @@
-package ru.kontur.jinfra.logging.context
+package ru.kontur.jinfra.logging
 
-import ru.kontur.jinfra.logging.LogLevel
-import ru.kontur.jinfra.logging.Logger
-import ru.kontur.jinfra.logging.LoggerBackend
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
+/**
+ * A logger that uses [LoggingContext] from [CoroutineContext] of the calling coroutine.
+ */
 class ContextLogger(
     private val backend: LoggerBackend
 ) {
 
+    /**
+     * [Logger] with the same backend.
+     */
     val withoutContext = Logger(backend)
 
     suspend inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
@@ -53,7 +56,8 @@ class ContextLogger(
 
     companion object {
 
-        fun backedBy(backend: LoggerBackend): ContextLogger = ContextLogger(backend)
+        fun backedBy(backend: LoggerBackend): ContextLogger =
+            ContextLogger(backend)
 
     }
 

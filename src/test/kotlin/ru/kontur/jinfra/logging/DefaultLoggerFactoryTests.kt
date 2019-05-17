@@ -3,8 +3,6 @@ package ru.kontur.jinfra.logging
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Test
-import ru.kontur.jinfra.logging.context.ContextLogger
-import ru.kontur.jinfra.logging.context.LoggingContext
 
 class DefaultLoggerFactoryTests {
 

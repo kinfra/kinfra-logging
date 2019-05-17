@@ -2,7 +2,7 @@ package ru.kontur.jinfra.logging.test
 
 import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.LoggerBackend
-import ru.kontur.jinfra.logging.context.LoggingContext
+import ru.kontur.jinfra.logging.LoggingContext
 
 class MockBackend : LoggerBackend {
 

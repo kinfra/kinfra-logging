@@ -1,6 +1,5 @@
 package ru.kontur.jinfra.logging
 
-import ru.kontur.jinfra.logging.context.ContextLogger
 import ru.kontur.jinfra.logging.internal.Slf4jBackend
 import java.lang.invoke.MethodHandles
 import kotlin.reflect.KClass

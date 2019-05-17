@@ -1,7 +1,5 @@
 package ru.kontur.jinfra.logging
 
-import ru.kontur.jinfra.logging.context.LoggingContext
-
 class Logger internal constructor(
     private val backend: LoggerBackend,
     private val context: LoggingContext = LoggingContext.EMPTY

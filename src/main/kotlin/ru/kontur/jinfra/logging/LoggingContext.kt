@@ -1,4 +1,4 @@
-package ru.kontur.jinfra.logging.context
+package ru.kontur.jinfra.logging
 
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
@@ -9,7 +9,7 @@ import kotlin.coroutines.coroutineContext
  * [LoggingContext] can be placed in [CoroutineContext] to propagate it inside entire call graph.
  * In that case you should use [ContextLogger] that will use that context.
  *
- * Alternatively a [LoggingContext] can be passed to an instance of [ru.kontur.jinfra.logging.Logger]
+ * Alternatively a [LoggingContext] can be passed to an instance of [Logger]
  * to use in all messages logged by that instance.
  */
 class LoggingContext private constructor(
@@ -17,10 +17,10 @@ class LoggingContext private constructor(
 ) : CoroutineContext.Element {
     /*
      * A note on public API:
-     * Beware that exposing a method that returns a new LoggingContext
+     * Beware that exposing a method returning a new LoggingContext
      * can lead to its misuse in CoroutineScope.withContext().
-     * For example suppose there is a LoggingContext.of() method.
-     * A user may use it like this:
+     * For example suppose there is a LoggingContext.of(key, value) method.
+     * A user may call it like this:
      *
      *   withContext(LoggingContext.of("key", "value")) { ... }
      *
@@ -53,7 +53,12 @@ class LoggingContext private constructor(
                     " (current value: '$currentValue', new value: '$value')"
         }
 
-        return LoggingContext(_elements + Element(key, value))
+        return LoggingContext(
+            _elements + Element(
+                key,
+                value
+            )
+        )
     }
 
     override val key: CoroutineContext.Key<*>

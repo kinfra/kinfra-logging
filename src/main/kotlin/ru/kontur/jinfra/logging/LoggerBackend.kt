@@ -1,7 +1,5 @@
 package ru.kontur.jinfra.logging
 
-import ru.kontur.jinfra.logging.context.LoggingContext
-
 interface LoggerBackend {
 
     fun isEnabled(level: LogLevel): Boolean

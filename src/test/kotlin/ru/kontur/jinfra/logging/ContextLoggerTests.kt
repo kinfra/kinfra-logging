@@ -4,8 +4,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import ru.kontur.jinfra.logging.context.ContextLogger
-import ru.kontur.jinfra.logging.context.LoggingContext
 import ru.kontur.jinfra.logging.test.MockBackend
 
 class ContextLoggerTests {

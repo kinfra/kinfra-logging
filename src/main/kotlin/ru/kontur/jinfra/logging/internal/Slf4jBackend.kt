@@ -7,7 +7,7 @@ import org.slf4j.spi.LocationAwareLogger
 import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.LoggerBackend
 import ru.kontur.jinfra.logging.LoggerBackendProvider
-import ru.kontur.jinfra.logging.context.LoggingContext
+import ru.kontur.jinfra.logging.LoggingContext
 
 internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
