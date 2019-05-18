@@ -1,5 +1,6 @@
 package ru.kontur.jinfra.logging
 
+import ru.kontur.jinfra.logging.backend.CallerInfo
 import ru.kontur.jinfra.logging.backend.LoggerBackend
 
 /**
@@ -44,7 +45,7 @@ class Logger internal constructor(
 
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?) {
-        backend.log(level, message, error, context)
+        backend.log(level, message, error, context, callerInfo)
     }
 
     /**
@@ -80,6 +81,8 @@ class Logger internal constructor(
     }
 
     companion object {
+
+        private val callerInfo = CallerInfo(Logger::class.java.name)
 
         fun backedBy(backend: LoggerBackend): Logger = Logger(backend, LoggingContext.EMPTY)
 

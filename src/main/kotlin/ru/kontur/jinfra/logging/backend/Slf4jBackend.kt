@@ -2,6 +2,7 @@ package ru.kontur.jinfra.logging.backend
 
 import org.slf4j.Logger
 import org.slf4j.Marker
+import org.slf4j.event.EventConstants
 import org.slf4j.event.Level
 import org.slf4j.spi.LocationAwareLogger
 import ru.kontur.jinfra.logging.LogLevel
@@ -33,7 +34,14 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
         override val slf4jLogger: Logger
     ) : Slf4jBackend() {
 
-        override fun log(level: LogLevel, message: String, error: Throwable?, context: LoggingContext) {
+        override fun log(
+            level: LogLevel,
+            message: String,
+            error: Throwable?,
+            context: LoggingContext,
+            caller: CallerInfo
+        ) {
+
             val marker: Marker? = createMarker(context)
             val fullMessage = context.decorate(message)
 
@@ -51,35 +59,39 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
     }
 
     private class LocationAware(
-        override val slf4jLogger: LocationAwareLogger,
-        facadeClass: Class<*>
+        override val slf4jLogger: LocationAwareLogger
     ) : Slf4jBackend() {
 
-        private val facadeFqcn = facadeClass.name
+        override fun log(
+            level: LogLevel,
+            message: String,
+            error: Throwable?,
+            context: LoggingContext,
+            caller: CallerInfo
+        ) {
 
-        override fun log(level: LogLevel, message: String, error: Throwable?, context: LoggingContext) {
             val marker = createMarker(context)
             val fullMessage = context.decorate(message)
             val slf4jLevel = when (level) {
-                LogLevel.TRACE -> Level.TRACE
-                LogLevel.DEBUG -> Level.DEBUG
-                LogLevel.INFO -> Level.INFO
-                LogLevel.WARN -> Level.WARN
-                LogLevel.ERROR -> Level.ERROR
+                LogLevel.TRACE -> EventConstants.TRACE_INT
+                LogLevel.DEBUG -> EventConstants.DEBUG_INT
+                LogLevel.INFO -> EventConstants.INFO_INT
+                LogLevel.WARN -> EventConstants.WARN_INT
+                LogLevel.ERROR -> EventConstants.ERROR_INT
             }
 
-            slf4jLogger.log(marker, facadeFqcn, slf4jLevel.toInt(), fullMessage, null, error)
+            slf4jLogger.log(marker, caller.facadeClassName, slf4jLevel, fullMessage, null, error)
         }
 
     }
 
     companion object : LoggerBackendProvider {
 
-        override fun forJavaClass(jClass: Class<*>, facadeClass: Class<*>): LoggerBackend {
+        override fun forJavaClass(jClass: Class<*>): LoggerBackend {
             val slf4jLogger: Logger = org.slf4j.LoggerFactory.getLogger(jClass)
 
             return if (slf4jLogger is LocationAwareLogger) {
-                LocationAware(slf4jLogger, facadeClass)
+                LocationAware(slf4jLogger)
             } else {
                 Basic(slf4jLogger)
             }

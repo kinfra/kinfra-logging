@@ -6,4 +6,9 @@ enum class LogLevel {
     INFO,
     WARN,
     ERROR,
+    ;
+
+    // for user extensions
+    companion object
+
 }

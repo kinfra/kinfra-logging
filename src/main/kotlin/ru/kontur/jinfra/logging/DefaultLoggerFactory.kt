@@ -9,7 +9,7 @@ private object DefaultLoggerFactory : LoggerFactory {
     private val backendProvider: LoggerBackendProvider = Slf4jBackend
 
     override fun getLogger(kClass: KClass<*>): Logger {
-        val backend = backendProvider.forJavaClass(kClass.java, Logger::class.java)
+        val backend = backendProvider.forJavaClass(kClass.java)
         return Logger.backedBy(backend)
     }
 

@@ -7,6 +7,9 @@ interface LoggerFactory {
 
     fun getLogger(kClass: KClass<*>): Logger
 
+    // for user extensions
+    companion object
+
 }
 
 @Suppress("NOTHING_TO_INLINE")
