@@ -4,7 +4,7 @@ import ru.kontur.jinfra.logging.internal.Slf4jBackend
 import java.lang.invoke.MethodHandles
 import kotlin.reflect.KClass
 
-object DefaultLoggerFactory : LoggerFactory {
+private object DefaultLoggerFactory : LoggerFactory {
 
     private val backendProvider: LoggerBackendProvider = Slf4jBackend
 
@@ -15,21 +15,36 @@ object DefaultLoggerFactory : LoggerFactory {
 
 }
 
+/**
+ * Obtains [Logger] instance to use in specified [class][kClass] using default [LoggerFactory].
+ */
 fun Logger.Companion.forClass(kClass: KClass<*>): Logger {
     return DefaultLoggerFactory.getLogger(kClass)
 }
 
+/**
+ * Obtains [Logger] instance to use in the current class using default [LoggerFactory].
+ *
+ * Usage:
+ * ```
+ *   class MyClass {
+ *       private val logger = Logger.currentClass()
+ *       ...
+ *   }
+ * ```
+ * Also can be used in a companion object:
+ * ```
+ *   class MyClass {
+ *       ...
+ *
+ *       companion object {
+ *           private val logger = Logger.currentClass()
+ *           ...
+ *       }
+ *   }
+ * ```
+ */
 @Suppress("NOTHING_TO_INLINE")
 inline fun Logger.Companion.currentClass(): Logger {
-    val currentClass = getCallingClass()
-    return DefaultLoggerFactory.getLogger(currentClass.kotlin)
-}
-
-// inline is required for lookup() to work correctly
-@Suppress("NOTHING_TO_INLINE")
-@PublishedApi
-internal inline fun getCallingClass(): Class<*> {
-    val currentClass = MethodHandles.lookup().lookupClass()
-    // skip companion
-    return currentClass.enclosingClass ?: currentClass
+    return DefaultLoggerFactory.currentClassLogger()
 }

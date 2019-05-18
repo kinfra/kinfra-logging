@@ -1,9 +1,14 @@
 package ru.kontur.jinfra.logging
 
+/**
+ * @see Logger.Companion.currentClass
+ * @see Logger.Companion.forClass
+ */
 class Logger internal constructor(
     private val backend: LoggerBackend,
     val context: LoggingContext
 ) {
+    // todo: class documentation
 
     inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.TRACE, error, lazyMessage)
