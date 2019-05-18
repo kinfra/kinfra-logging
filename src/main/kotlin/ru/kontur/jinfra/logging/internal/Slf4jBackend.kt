@@ -31,17 +31,13 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
         return null
     }
 
-    protected fun getFullMessage(message: String, context: LoggingContext): String {
-        return context.prefix + message
-    }
-
     private class Basic(
         override val slf4jLogger: Logger
     ) : Slf4jBackend() {
 
         override fun log(level: LogLevel, message: String, error: Throwable?, context: LoggingContext) {
             val marker: Marker? = createMarker(context)
-            val fullMessage = getFullMessage(message, context)
+            val fullMessage = context.decorate(message)
 
             with(slf4jLogger) {
                 when (level) {
@@ -65,7 +61,7 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
         override fun log(level: LogLevel, message: String, error: Throwable?, context: LoggingContext) {
             val marker = createMarker(context)
-            val fullMessage = getFullMessage(message, context)
+            val fullMessage = context.decorate(message)
             val slf4jLevel = when (level) {
                 LogLevel.TRACE -> Level.TRACE
                 LogLevel.DEBUG -> Level.DEBUG

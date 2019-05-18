@@ -39,7 +39,7 @@ class LoggingContext private constructor(
     val elements: Iterable<Element>
         get() = _elements
 
-    val prefix: String = buildString {
+    private val prefix: String = buildString {
         for (element in elements) {
             append("[")
             append(element.value)
@@ -59,11 +59,17 @@ class LoggingContext private constructor(
         }
 
         return LoggingContext(
-            _elements + Element(
-                key,
-                value
-            )
+            _elements + Element(key, value)
         )
+    }
+
+    /**
+     * Render context data into a [message] supplied by [Logger]'s user.
+     *
+     * This method is for use in [LoggerBackend].
+     */
+    fun decorate(message: String): String {
+        return prefix + message
     }
 
     override val key: CoroutineContext.Key<*>
