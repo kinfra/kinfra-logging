@@ -5,15 +5,12 @@ import kotlin.coroutines.coroutineContext
 
 /**
  * A logger that uses [LoggingContext] from [CoroutineContext] of the calling coroutine.
+ *
+ * An instance of [CoroutineLogger] can be obtained via [Logger.withCoroutineContext] method.
  */
-class ContextLogger(
+class CoroutineLogger internal constructor(
     private val backend: LoggerBackend
 ) {
-
-    /**
-     * [Logger] with the same backend.
-     */
-    val withoutContext = Logger(backend)
 
     suspend inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.TRACE, error, lazyMessage)
@@ -50,15 +47,24 @@ class ContextLogger(
         backend.log(level, message, error, context[LoggingContext] ?: LoggingContext.EMPTY)
     }
 
-    override fun toString(): String {
-        return "ContextLogger(backend: $backend)"
+    /**
+     * Returns a [Logger] backed by the same [LoggerBackend] with an empty context.
+     *
+     * @see Logger.withCoroutineContext
+     */
+    fun withoutContext(): Logger {
+        return Logger(backend, LoggingContext.EMPTY)
     }
 
-    companion object {
+    /**
+     * Returns a [Logger] backed by the same [LoggerBackend] that use specified [context].
+     */
+    fun withContext(context: LoggingContext): Logger {
+        return Logger(backend, context)
+    }
 
-        fun backedBy(backend: LoggerBackend): ContextLogger =
-            ContextLogger(backend)
-
+    override fun toString(): String {
+        return "CoroutineLogger(backend: $backend)"
     }
 
 }

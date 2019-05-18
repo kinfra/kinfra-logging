@@ -13,16 +13,6 @@ class DefaultLoggerFactoryTests {
     }
 
     @Test
-    fun current_class_context_logger() {
-        val logger = ContextLogger.currentClass()
-        runBlocking {
-            withContext(LoggingContext.with("foo", "123")) {
-                logger.info { "Log message" }
-            }
-        }
-    }
-
-    @Test
     fun companion_current_class_logger() {
         companionLogger.info { "Log message" }
     }

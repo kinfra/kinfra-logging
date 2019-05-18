@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import ru.kontur.jinfra.logging.test.MockBackend
 
-class ContextLoggerTests {
+class CoroutineLoggerTests {
 
     @Test
     fun context_logged() = test {
@@ -22,7 +22,7 @@ class ContextLoggerTests {
 
     private fun test(block: suspend TestContext.() -> Unit) {
         val backend = MockBackend()
-        val logger = ContextLogger.backedBy(backend)
+        val logger = Logger.backedBy(backend).withCoroutineContext()
         val context = TestContext(logger, backend)
 
         runBlocking {
@@ -31,7 +31,7 @@ class ContextLoggerTests {
     }
 
     private class TestContext(
-        val logger: ContextLogger,
+        val logger: CoroutineLogger,
         val backend: MockBackend
     )
 

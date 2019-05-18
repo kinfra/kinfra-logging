@@ -7,10 +7,15 @@ import kotlin.coroutines.coroutineContext
  * Contains supplementary data that should be logged with every log message.
  *
  * [LoggingContext] can be placed in [CoroutineContext] to propagate it inside entire call graph.
- * In that case you should use [ContextLogger] that will use that context.
+ * In that case you should use [CoroutineLogger] that will use that context.
  *
  * Alternatively a [LoggingContext] can be passed to an instance of [Logger]
  * to use in all messages logged by that instance.
+ *
+ * These approaches can be combined: for example, context can be captured in a suspending function
+ * via [LoggingContext.current] and then used in a [Logger] via [Logger.withContext].
+ *
+ * New elements can be added to the context via [LoggingContext.with] (in a coroutine) and [Logger.addContext].
  */
 class LoggingContext private constructor(
     elements: List<Element>
@@ -25,7 +30,7 @@ class LoggingContext private constructor(
      *   withContext(LoggingContext.of("key", "value")) { ... }
      *
      * This way current context will be lost (it will be replaced by the new context).
-     * So its better to avoid having such API.
+     * So it's better to avoid having such API.
      */
 
     // todo: optimize elements and prefix construction (don't use List)
@@ -78,17 +83,32 @@ class LoggingContext private constructor(
         val EMPTY: LoggingContext = LoggingContext(emptyList())
 
         /**
-         * Returns a context composed from the context of the current coroutine
-         * and specified element.
+         * Returns [LoggingContext] of the calling coroutine.
+         */
+        suspend inline fun current(): LoggingContext {
+            return currentImpl(coroutineContext)
+        }
+
+        @PublishedApi
+        internal fun currentImpl(context: CoroutineContext): LoggingContext {
+            return context[LoggingContext] ?: EMPTY
+        }
+
+        /**
+         * Returns a context composed from the context of the calling coroutine
+         * and an element with specified [key] and [value].
+         *
          * Current context must not contain an element with the same [key].
+         *
+         * @see Logger.addContext
          */
         suspend inline fun with(key: String, value: Any): LoggingContext {
             return withImpl(coroutineContext, key, value)
         }
 
         @PublishedApi
-        internal fun withImpl(currentContext: CoroutineContext, key: String, value: Any): LoggingContext {
-            return (currentContext[LoggingContext] ?: EMPTY).plus(key, value.toString())
+        internal fun withImpl(context: CoroutineContext, key: String, value: Any): LoggingContext {
+            return currentImpl(context).plus(key, value.toString())
         }
 
     }

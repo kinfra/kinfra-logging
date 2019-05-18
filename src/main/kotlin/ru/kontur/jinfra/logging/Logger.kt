@@ -2,7 +2,7 @@ package ru.kontur.jinfra.logging
 
 class Logger internal constructor(
     private val backend: LoggerBackend,
-    private val context: LoggingContext = LoggingContext.EMPTY
+    val context: LoggingContext
 ) {
 
     inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
@@ -40,10 +40,30 @@ class Logger internal constructor(
         backend.log(level, message, error, context)
     }
 
+    /**
+     * Returns a [CoroutineLogger] backed by the same [LoggerBackend].
+     *
+     * @see CoroutineLogger.withoutContext
+     */
+    fun withCoroutineContext(): CoroutineLogger {
+        return CoroutineLogger(backend)
+    }
+
+    /**
+     * Returns a [Logger] backed by the same [LoggerBackend] that use specified [context].
+     *
+     * Note that this instance's context **will not** be merged with the [context].
+     */
     fun withContext(context: LoggingContext): Logger {
         return Logger(backend, context)
     }
 
+    /**
+     * Returns a [Logger] backed by the same [LoggerBackend] that use a context
+     * composed of this instance's context and an element with specified [key] and [value].
+     *
+     * @see LoggingContext.with
+     */
     fun addContext(key: String, value: Any): Logger {
         return Logger(backend, context.plus(key, value.toString()))
     }
@@ -54,7 +74,7 @@ class Logger internal constructor(
 
     companion object {
 
-        fun backedBy(backend: LoggerBackend): Logger = Logger(backend)
+        fun backedBy(backend: LoggerBackend): Logger = Logger(backend, LoggingContext.EMPTY)
 
     }
 

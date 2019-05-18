@@ -6,6 +6,4 @@ interface LoggerFactory {
 
     fun getLogger(kClass: KClass<*>): Logger
 
-    fun getContextLogger(kClass: KClass<*>): ContextLogger
-
 }
