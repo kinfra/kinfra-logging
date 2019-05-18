@@ -1,7 +1,7 @@
 package ru.kontur.jinfra.logging
 
-import ru.kontur.jinfra.logging.internal.Slf4jBackend
-import java.lang.invoke.MethodHandles
+import ru.kontur.jinfra.logging.backend.LoggerBackendProvider
+import ru.kontur.jinfra.logging.backend.Slf4jBackend
 import kotlin.reflect.KClass
 
 private object DefaultLoggerFactory : LoggerFactory {

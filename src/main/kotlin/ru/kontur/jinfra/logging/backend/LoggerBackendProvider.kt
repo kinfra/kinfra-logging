@@ -1,4 +1,4 @@
-package ru.kontur.jinfra.logging
+package ru.kontur.jinfra.logging.backend
 
 interface LoggerBackendProvider {
 

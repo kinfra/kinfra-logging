@@ -1,5 +1,6 @@
 package ru.kontur.jinfra.logging
 
+import ru.kontur.jinfra.logging.backend.LoggerBackend
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 

@@ -1,12 +1,10 @@
-package ru.kontur.jinfra.logging.internal
+package ru.kontur.jinfra.logging.backend
 
 import org.slf4j.Logger
 import org.slf4j.Marker
 import org.slf4j.event.Level
 import org.slf4j.spi.LocationAwareLogger
 import ru.kontur.jinfra.logging.LogLevel
-import ru.kontur.jinfra.logging.LoggerBackend
-import ru.kontur.jinfra.logging.LoggerBackendProvider
 import ru.kontur.jinfra.logging.LoggingContext
 
 internal abstract class Slf4jBackend private constructor() : LoggerBackend {

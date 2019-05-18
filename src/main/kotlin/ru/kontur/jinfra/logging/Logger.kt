@@ -1,5 +1,7 @@
 package ru.kontur.jinfra.logging
 
+import ru.kontur.jinfra.logging.backend.LoggerBackend
+
 /**
  * @see Logger.Companion.currentClass
  * @see Logger.Companion.forClass

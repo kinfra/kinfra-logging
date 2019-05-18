@@ -1,4 +1,7 @@
-package ru.kontur.jinfra.logging
+package ru.kontur.jinfra.logging.backend
+
+import ru.kontur.jinfra.logging.LogLevel
+import ru.kontur.jinfra.logging.LoggingContext
 
 interface LoggerBackend {
 
