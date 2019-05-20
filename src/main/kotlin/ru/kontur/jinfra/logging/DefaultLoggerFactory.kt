@@ -4,7 +4,8 @@ import ru.kontur.jinfra.logging.backend.LoggerBackendProvider
 import ru.kontur.jinfra.logging.backend.Slf4jBackend
 import kotlin.reflect.KClass
 
-private object DefaultLoggerFactory : LoggerFactory {
+@PublishedApi
+internal object DefaultLoggerFactory : LoggerFactory {
 
     private val backendProvider: LoggerBackendProvider = Slf4jBackend
 
