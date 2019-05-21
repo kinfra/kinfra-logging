@@ -24,12 +24,6 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    protected fun createMarker(context: LoggingContext): Marker? {
-        // todo: use markers?
-        return null
-    }
-
     private class Basic(
         override val slf4jLogger: Logger
     ) : Slf4jBackend() {
@@ -42,16 +36,15 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
             caller: CallerInfo
         ) {
 
-            val marker: Marker? = createMarker(context)
             val fullMessage = context.decorate(message)
 
             with(slf4jLogger) {
                 when (level) {
-                    LogLevel.TRACE -> trace(marker, fullMessage, error)
-                    LogLevel.DEBUG -> debug(marker, fullMessage, error)
-                    LogLevel.INFO -> info(marker, fullMessage, error)
-                    LogLevel.WARN -> warn(marker, fullMessage, error)
-                    LogLevel.ERROR -> error(marker, fullMessage, error)
+                    LogLevel.TRACE -> trace(fullMessage, error)
+                    LogLevel.DEBUG -> debug(fullMessage, error)
+                    LogLevel.INFO -> info(fullMessage, error)
+                    LogLevel.WARN -> warn(fullMessage, error)
+                    LogLevel.ERROR -> error(fullMessage, error)
                 }
             }
         }
@@ -70,7 +63,6 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
             caller: CallerInfo
         ) {
 
-            val marker = createMarker(context)
             val fullMessage = context.decorate(message)
             val slf4jLevel = when (level) {
                 LogLevel.TRACE -> EventConstants.TRACE_INT
@@ -80,7 +72,7 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
                 LogLevel.ERROR -> EventConstants.ERROR_INT
             }
 
-            slf4jLogger.log(marker, caller.facadeClassName, slf4jLevel, fullMessage, null, error)
+            slf4jLogger.log(null, caller.facadeClassName, slf4jLevel, fullMessage, null, error)
         }
 
     }
