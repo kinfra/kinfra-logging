@@ -7,16 +7,32 @@ import kotlin.coroutines.coroutineContext
 /**
  * Contains supplementary data that should be logged with every log message.
  *
- * [LoggingContext] can be placed in [CoroutineContext] to propagate it inside entire call graph.
- * In that case you should use [CoroutineLogger] that will use that context.
+ * LoggingContext can be placed in [CoroutineContext] to propagate it inside entire call graph.
+ * In that case you should use [CoroutineLogger] that will use that context:
+ * ```
+ * val logger: CoroutineLogger = Logger.currentClass().withCoroutineContext()
+ * val userId = ...
+ * withContext(LoggingContext.with("userId", userId)) {
+ *     logger.info { "Log message" }
+ *     ...
+ * }
+ * ```
  *
- * Alternatively a [LoggingContext] can be passed to an instance of [Logger]
- * to use in all messages logged by that instance.
+ * Alternatively a LoggingContext [can be passed][Logger.withContext] to an instance of [Logger]
+ * in order to use it in all messages logged by the instance:
+ * ```
+ * fun doSomething(..., logContext: LoggingContext) {
+ *     val logger = logger.withContext(logContext)
+ *     logger.info { "Log message" }
+ *     ...
+ * }
+ * ```
  *
- * These approaches can be combined: for example, context can be captured in a suspending function
+ * These approaches can be combined: for example, a context can be captured in a suspending function
  * via [LoggingContext.current] and then used in a [Logger] via [Logger.withContext].
  *
- * New elements can be added to the context via [LoggingContext.with] (in a coroutine) and [Logger.addContext].
+ * New elements can be added to the context via [LoggingContext.add] and [LoggingContext.with] (in a coroutine).
+ * The context is immutable, adding new elements creates a new context.
  */
 class LoggingContext private constructor(
     elements: List<Element>
@@ -52,7 +68,14 @@ class LoggingContext private constructor(
         return elements.find { it.key == key }?.value
     }
 
-    internal fun plus(key: String, value: String): LoggingContext {
+    /**
+     * Returns a context composed from this context and an element with specified [key] and [value].
+     *
+     * This context must not contain an element with the same [key].
+     *
+     * @see Logger.addContext
+     */
+    fun add(key: String, value: Any): LoggingContext {
         val currentValue = get(key)
         require(currentValue == null) {
             "Context already contains an element with key '$key'" +
@@ -60,7 +83,7 @@ class LoggingContext private constructor(
         }
 
         return LoggingContext(
-            _elements + Element(key, value)
+            _elements + Element(key, value.toString())
         )
     }
 
@@ -87,6 +110,9 @@ class LoggingContext private constructor(
 
     companion object : CoroutineContext.Key<LoggingContext> {
 
+        /**
+         * Empty context. This context has no elements.
+         */
         val EMPTY: LoggingContext = LoggingContext(emptyList())
 
         /**
@@ -102,20 +128,13 @@ class LoggingContext private constructor(
         }
 
         /**
-         * Returns a context composed from the context of the calling coroutine
-         * and an element with specified [key] and [value].
+         * A shortcut for `LoggingContext.current().add(key, value)`
          *
-         * Current context must not contain an element with the same [key].
-         *
-         * @see Logger.addContext
+         * @see LoggingContext.current
+         * @see LoggingContext.add
          */
         suspend inline fun with(key: String, value: Any): LoggingContext {
-            return withImpl(coroutineContext, key, value)
-        }
-
-        @PublishedApi
-        internal fun withImpl(context: CoroutineContext, key: String, value: Any): LoggingContext {
-            return currentImpl(context).plus(key, value.toString())
+            return current().add(key, value)
         }
 
     }

@@ -70,10 +70,10 @@ class Logger internal constructor(
      * Returns a [Logger] backed by the same [LoggerBackend] that use a context
      * composed of this instance's context and an element with specified [key] and [value].
      *
-     * @see LoggingContext.with
+     * @see LoggingContext.add
      */
     fun addContext(key: String, value: Any): Logger {
-        return Logger(backend, context.plus(key, value.toString()))
+        return withContext(context.add(key, value))
     }
 
     override fun toString(): String {
