@@ -99,14 +99,47 @@ class LoggingContext private constructor(
     override val key: CoroutineContext.Key<*>
         get() = LoggingContext
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LoggingContext) return false
+
+        return _elements == other._elements
+    }
+
+    override fun hashCode(): Int {
+        return _elements.hashCode()
+    }
+
     override fun toString(): String {
-        return "LoggingContext$_elements"
+        return if (_elements.isEmpty()) {
+            "LoggingContext(empty)"
+        } else {
+            "LoggingContext$_elements"
+        }
     }
 
     class Element internal constructor(
         val key: String,
         val value: String
-    )
+    ) {
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Element) return false
+            return key == other.key && value == other.value
+        }
+
+        override fun hashCode(): Int {
+            var result = key.hashCode()
+            result = 31 * result + value.hashCode()
+            return result
+        }
+
+        override fun toString(): String {
+            return "$key=$value"
+        }
+
+    }
 
     companion object : CoroutineContext.Key<LoggingContext> {
 
