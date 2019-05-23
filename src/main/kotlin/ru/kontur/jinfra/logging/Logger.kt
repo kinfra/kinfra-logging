@@ -84,7 +84,7 @@ class Logger internal constructor(
 
         private val callerInfo = CallerInfo(Logger::class.java.name)
 
-        fun backedBy(backend: LoggerBackend): Logger = Logger(backend, LoggingContext.EMPTY)
+        internal fun backedBy(backend: LoggerBackend): Logger = Logger(backend, LoggingContext.EMPTY)
 
     }
 

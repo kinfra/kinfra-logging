@@ -1,17 +1,32 @@
 package ru.kontur.jinfra.logging
 
+import ru.kontur.jinfra.logging.backend.LoggerBackend
 import java.lang.invoke.MethodHandles
 import kotlin.reflect.KClass
 
-interface LoggerFactory {
+abstract class LoggerFactory {
 
-    fun getLogger(kClass: KClass<*>): Logger
+    /**
+     * Obtains [Logger] instance to use in specified [class][kClass].
+     */
+    fun getLogger(kClass: KClass<*>): Logger {
+        val backend = getLoggerBackend(kClass.java)
+        return Logger.backedBy(backend)
+    }
+
+    /**
+     * Provides [LoggerBackend] for a logger to use in specified [class][jClass].
+     */
+    abstract fun getLoggerBackend(jClass: Class<*>): LoggerBackend
 
     // for user extensions
     companion object
 
 }
 
+/**
+ * Obtains [Logger] instance to use in the current class using default [LoggerFactory].
+ */
 @Suppress("NOTHING_TO_INLINE")
 inline fun LoggerFactory.currentClassLogger(): Logger {
     val currentClass = getCallingClass()

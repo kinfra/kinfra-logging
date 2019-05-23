@@ -27,3 +27,7 @@ interface LoggerBackend {
     companion object
 
 }
+
+class CallerInfo internal constructor(
+    val facadeClassName: String
+)
