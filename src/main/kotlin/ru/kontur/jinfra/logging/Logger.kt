@@ -7,11 +7,43 @@ import ru.kontur.jinfra.logging.backend.LoggerBackend
  * @see Logger.Companion.currentClass
  * @see Logger.Companion.forClass
  */
-class Logger internal constructor(
-    private val backend: LoggerBackend,
-    val context: LoggingContext
-) {
+class Logger {
     // todo: class documentation
+
+    val context: LoggingContext
+
+    private val backend: LoggerBackend
+
+    /**
+     * At most one Logger with empty context needs to be constructed with a given LoggerBackend.
+     * This field refers that Logger. May contain `this`.
+     */
+    private val emptyContextLogger: Logger
+
+    /**
+     * At most one CoroutineLogger needs to be constructed with a given LoggerBackend.
+     * Lazily initialized in the logger with empty context.
+     */
+    @Volatile
+    private var coroutineLogger: CoroutineLogger? = null
+
+    /**
+     * Create a new logger with empty context.
+     */
+    private constructor(backend: LoggerBackend) {
+        this.context = LoggingContext.EMPTY
+        this.backend = backend
+        this.emptyContextLogger = this
+    }
+
+    /**
+     * Create a logger with specified non-empty [context].
+     */
+    private constructor(emptyContextLogger: Logger, context: LoggingContext) {
+        this.context = context
+        this.backend = emptyContextLogger.backend
+        this.emptyContextLogger = emptyContextLogger
+    }
 
     inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.TRACE, error, lazyMessage)
@@ -49,25 +81,35 @@ class Logger internal constructor(
     }
 
     /**
-     * Returns a [CoroutineLogger] backed by the same [LoggerBackend].
+     * Returns a [CoroutineLogger] to use logging context of the calling coroutine.
      *
      * @see CoroutineLogger.withoutContext
      */
     fun withCoroutineContext(): CoroutineLogger {
-        return CoroutineLogger(backend)
+        return if (this != emptyContextLogger) {
+            emptyContextLogger.withCoroutineContext()
+        } else {
+            coroutineLogger ?: CoroutineLogger(emptyContextLogger, backend).also {
+                coroutineLogger = it
+            }
+        }
     }
 
     /**
-     * Returns a [Logger] backed by the same [LoggerBackend] that use specified [context].
+     * Returns a [Logger] for the same class that use specified [context].
      *
      * Note that this instance's context **will not** be merged with the [context].
      */
     fun withContext(context: LoggingContext): Logger {
-        return Logger(backend, context)
+        return if (context == LoggingContext.EMPTY) {
+            emptyContextLogger
+        } else {
+            Logger(emptyContextLogger, context)
+        }
     }
 
     /**
-     * Returns a [Logger] backed by the same [LoggerBackend] that use a context
+     * Returns a [Logger] for the same class that use a context
      * composed of this instance's context and an element with specified [key] and [value].
      *
      * @see LoggingContext.add
@@ -84,7 +126,7 @@ class Logger internal constructor(
 
         private val callerInfo = CallerInfo(Logger::class.java.name)
 
-        internal fun backedBy(backend: LoggerBackend): Logger = Logger(backend, LoggingContext.EMPTY)
+        internal fun backedBy(backend: LoggerBackend): Logger = Logger(backend)
 
     }
 

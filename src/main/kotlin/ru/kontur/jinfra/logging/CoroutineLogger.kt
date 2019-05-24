@@ -11,6 +11,7 @@ import kotlin.coroutines.coroutineContext
  * An instance of [CoroutineLogger] can be obtained via [Logger.withCoroutineContext] method.
  */
 class CoroutineLogger internal constructor(
+    private val emptyContextLogger: Logger,
     private val backend: LoggerBackend
 ) {
 
@@ -51,19 +52,19 @@ class CoroutineLogger internal constructor(
     }
 
     /**
-     * Returns a [Logger] backed by the same [LoggerBackend] with an empty context.
+     * Returns a [Logger] for the same class with an empty context.
      *
      * @see Logger.withCoroutineContext
      */
     fun withoutContext(): Logger {
-        return Logger(backend, LoggingContext.EMPTY)
+        return emptyContextLogger
     }
 
     /**
-     * Returns a [Logger] backed by the same [LoggerBackend] that use specified [context].
+     * Returns a [Logger] for the same class that use specified [context].
      */
     fun withContext(context: LoggingContext): Logger {
-        return Logger(backend, context)
+        return emptyContextLogger.withContext(context)
     }
 
     override fun toString(): String {
