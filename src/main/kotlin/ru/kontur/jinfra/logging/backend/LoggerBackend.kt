@@ -5,13 +5,13 @@ import ru.kontur.jinfra.logging.LoggingContext
 
 interface LoggerBackend {
 
-    fun isEnabled(level: LogLevel): Boolean
+    fun isEnabled(level: LogLevel, context: LoggingContext): Boolean
 
     fun log(level: LogLevel, message: String, error: Throwable?, context: LoggingContext, caller: CallerInfo)
 
     object Nop : LoggerBackend {
 
-        override fun isEnabled(level: LogLevel): Boolean = false
+        override fun isEnabled(level: LogLevel, context: LoggingContext): Boolean = false
 
         override fun log(
             level: LogLevel,

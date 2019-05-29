@@ -14,7 +14,7 @@ class MockBackend : LoggerBackend {
     val events: List<LoggingEvent>
         get() = this.recordedEvents
 
-    override fun isEnabled(level: LogLevel): Boolean {
+    override fun isEnabled(level: LogLevel, context: LoggingContext): Boolean {
         return level >= this.level
     }
 

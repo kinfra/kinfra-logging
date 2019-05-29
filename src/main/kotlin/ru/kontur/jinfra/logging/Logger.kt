@@ -73,7 +73,7 @@ class Logger {
     }
 
     @PublishedApi
-    internal fun isEnabled(level: LogLevel): Boolean = backend.isEnabled(level)
+    internal fun isEnabled(level: LogLevel): Boolean = backend.isEnabled(level, context)
 
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?) {

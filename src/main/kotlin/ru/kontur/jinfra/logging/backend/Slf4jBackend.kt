@@ -11,7 +11,7 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
     protected abstract val slf4jLogger: Logger
 
-    override fun isEnabled(level: LogLevel): Boolean {
+    override fun isEnabled(level: LogLevel, context: LoggingContext): Boolean {
         return with(slf4jLogger) {
             when (level) {
                 LogLevel.TRACE -> isTraceEnabled

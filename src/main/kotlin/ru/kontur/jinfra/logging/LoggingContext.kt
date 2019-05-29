@@ -152,11 +152,13 @@ class LoggingContext private constructor(
          * Returns [LoggingContext] of the calling coroutine.
          */
         suspend inline fun current(): LoggingContext {
-            return currentImpl(coroutineContext)
+            return fromCoroutineContext(coroutineContext)
         }
 
-        @PublishedApi
-        internal fun currentImpl(context: CoroutineContext): LoggingContext {
+        /**
+         * Returns [LoggingContext] contained in a [CoroutineContext] or [EMPTY] if there is not one.
+         */
+        fun fromCoroutineContext(context: CoroutineContext): LoggingContext {
             return context[LoggingContext] ?: EMPTY
         }
 

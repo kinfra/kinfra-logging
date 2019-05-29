@@ -36,18 +36,22 @@ class CoroutineLogger internal constructor(
     }
 
     suspend inline fun log(level: LogLevel, error: Throwable? = null, lazyMessage: () -> String) {
-        if (isEnabled(level)) {
+        val context = coroutineContext
+        if (isEnabled(level, context)) {
             val message = lazyMessage.invoke()
-            log(level, message, error, coroutineContext)
+            log(level, message, error, context)
         }
     }
 
     @PublishedApi
-    internal fun isEnabled(level: LogLevel): Boolean = backend.isEnabled(level)
+    internal fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean {
+        val loggingContext = LoggingContext.fromCoroutineContext(context)
+        return backend.isEnabled(level, loggingContext)
+    }
 
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?, context: CoroutineContext) {
-        val loggingContext = context[LoggingContext] ?: LoggingContext.EMPTY
+        val loggingContext = LoggingContext.fromCoroutineContext(context)
         backend.log(level, message, error, loggingContext, callerInfo)
     }
 
