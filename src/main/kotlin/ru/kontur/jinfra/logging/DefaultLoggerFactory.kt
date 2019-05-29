@@ -1,21 +1,18 @@
 package ru.kontur.jinfra.logging
 
-import ru.kontur.jinfra.logging.backend.LoggerBackend
 import ru.kontur.jinfra.logging.backend.Slf4jBackend
+import ru.kontur.jinfra.logging.decor.MessageDecor
+import ru.kontur.jinfra.logging.decor.PrefixMessageDecor
 import kotlin.reflect.KClass
 
 /**
- * Default implementation of LoggerFactory.
+ * Default implementation of [LoggerFactory].
  *
  * For now it uses SLF4J as logging backend.
  */
-object DefaultLoggerFactory : LoggerFactory() {
+object DefaultLoggerFactory : LoggerFactory.Wrapper(Slf4jBackend.Factory) {
 
-    private val delegate = Slf4jBackend.Factory
-
-    override fun getLoggerBackend(jClass: Class<*>): LoggerBackend {
-        return delegate.getLoggerBackend(jClass)
-    }
+    override fun getEmptyDecor(): MessageDecor = PrefixMessageDecor.EMPTY
 
 }
 

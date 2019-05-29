@@ -35,15 +35,13 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
             caller: CallerInfo
         ) {
 
-            val fullMessage = context.decorate(message)
-
             with(slf4jLogger) {
                 when (level) {
-                    LogLevel.TRACE -> trace(fullMessage, error)
-                    LogLevel.DEBUG -> debug(fullMessage, error)
-                    LogLevel.INFO -> info(fullMessage, error)
-                    LogLevel.WARN -> warn(fullMessage, error)
-                    LogLevel.ERROR -> error(fullMessage, error)
+                    LogLevel.TRACE -> trace(message, error)
+                    LogLevel.DEBUG -> debug(message, error)
+                    LogLevel.INFO -> info(message, error)
+                    LogLevel.WARN -> warn(message, error)
+                    LogLevel.ERROR -> error(message, error)
                 }
             }
         }
@@ -62,7 +60,6 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
             caller: CallerInfo
         ) {
 
-            val fullMessage = context.decorate(message)
             val slf4jLevel = when (level) {
                 LogLevel.TRACE -> EventConstants.TRACE_INT
                 LogLevel.DEBUG -> EventConstants.DEBUG_INT
@@ -71,7 +68,7 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
                 LogLevel.ERROR -> EventConstants.ERROR_INT
             }
 
-            slf4jLogger.log(null, caller.facadeClassName, slf4jLevel, fullMessage, null, error)
+            slf4jLogger.log(null, caller.facadeClassName, slf4jLevel, message, null, error)
         }
 
     }

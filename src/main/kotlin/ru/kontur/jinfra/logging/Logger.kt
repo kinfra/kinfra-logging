@@ -81,7 +81,8 @@ class Logger {
 
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?) {
-        backend.log(level, message, error, context, callerInfo)
+        val decoratedMessage = context.decorate(message, factory)
+        backend.log(level, decoratedMessage, error, context, callerInfo)
     }
 
     /**

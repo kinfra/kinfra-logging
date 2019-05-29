@@ -53,7 +53,8 @@ class CoroutineLogger internal constructor(
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?, context: CoroutineContext) {
         val loggingContext = LoggingContext.fromCoroutineContext(context)
-        backend.log(level, message, error, loggingContext, callerInfo)
+        val decoratedMessage = loggingContext.decorate(message, factory)
+        backend.log(level, decoratedMessage, error, loggingContext, callerInfo)
     }
 
     /**

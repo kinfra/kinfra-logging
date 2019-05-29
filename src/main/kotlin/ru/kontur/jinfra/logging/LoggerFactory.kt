@@ -1,6 +1,7 @@
 package ru.kontur.jinfra.logging
 
 import ru.kontur.jinfra.logging.backend.LoggerBackend
+import ru.kontur.jinfra.logging.decor.MessageDecor
 import java.lang.invoke.MethodHandles
 import kotlin.reflect.KClass
 
@@ -18,6 +19,29 @@ abstract class LoggerFactory {
      * Provides [LoggerBackend] for a logger to use in specified [class][jClass].
      */
     abstract fun getLoggerBackend(jClass: Class<*>): LoggerBackend
+
+    /**
+     * Provides an instance of initial (empty) [MessageDecor].
+     *
+     * Default implementation returns [MessageDecor.Nop].
+     */
+    open fun getEmptyDecor(): MessageDecor = MessageDecor.Nop
+
+    /**
+     * Delegates all calls to another [LoggerFactory].
+     *
+     * Custom wrapping factories should extend this class to properly implement
+     * new methods that can be added in the future.
+     */
+    abstract class Wrapper(
+        protected val delegate: LoggerFactory
+    ) : LoggerFactory() {
+
+        override fun getLoggerBackend(jClass: Class<*>) = delegate.getLoggerBackend(jClass)
+
+        override fun getEmptyDecor() = delegate.getEmptyDecor()
+
+    }
 
     // for user extensions
     companion object
