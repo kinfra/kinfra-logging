@@ -29,7 +29,7 @@ class LoggerTests {
 
     private fun test(block: TestContext.() -> Unit) {
         val backend = MockBackend()
-        val logger = Logger.backedBy(backend)
+        val logger = Logger(backend, DefaultLoggerFactory)
         val context = TestContext(logger, backend)
         context.block()
     }

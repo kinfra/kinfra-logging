@@ -14,6 +14,8 @@ class Logger {
 
     private val backend: LoggerBackend
 
+    private val factory: LoggerFactory
+
     /**
      * At most one Logger with empty context needs to be constructed with a given LoggerBackend.
      * This field refers that Logger. May contain `this`.
@@ -30,9 +32,10 @@ class Logger {
     /**
      * Create a new logger with empty context.
      */
-    private constructor(backend: LoggerBackend) {
+    internal constructor(backend: LoggerBackend, factory: LoggerFactory) {
         this.context = LoggingContext.EMPTY
         this.backend = backend
+        this.factory = factory
         this.emptyContextLogger = this
     }
 
@@ -42,6 +45,7 @@ class Logger {
     private constructor(emptyContextLogger: Logger, context: LoggingContext) {
         this.context = context
         this.backend = emptyContextLogger.backend
+        this.factory = emptyContextLogger.factory
         this.emptyContextLogger = emptyContextLogger
     }
 
@@ -89,7 +93,7 @@ class Logger {
         return if (this != emptyContextLogger) {
             emptyContextLogger.withCoroutineContext()
         } else {
-            coroutineLogger ?: CoroutineLogger(emptyContextLogger, backend).also {
+            coroutineLogger ?: CoroutineLogger(emptyContextLogger, backend, factory).also {
                 coroutineLogger = it
             }
         }
@@ -125,8 +129,6 @@ class Logger {
     companion object {
 
         private val callerInfo = CallerInfo(Logger::class.java.name)
-
-        internal fun backedBy(backend: LoggerBackend): Logger = Logger(backend)
 
     }
 

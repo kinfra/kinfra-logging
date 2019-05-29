@@ -11,7 +11,7 @@ abstract class LoggerFactory {
      */
     fun getLogger(kClass: KClass<*>): Logger {
         val backend = getLoggerBackend(kClass.java)
-        return Logger.backedBy(backend)
+        return Logger(backend, this)
     }
 
     /**

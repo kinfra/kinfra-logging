@@ -22,7 +22,7 @@ class CoroutineLoggerTests {
 
     private fun test(block: suspend TestContext.() -> Unit) {
         val backend = MockBackend()
-        val logger = Logger.backedBy(backend).withCoroutineContext()
+        val logger = Logger(backend, DefaultLoggerFactory).withCoroutineContext()
         val context = TestContext(logger, backend)
 
         runBlocking {

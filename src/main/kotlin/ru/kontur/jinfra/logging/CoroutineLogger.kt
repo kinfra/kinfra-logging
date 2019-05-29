@@ -12,7 +12,8 @@ import kotlin.coroutines.coroutineContext
  */
 class CoroutineLogger internal constructor(
     private val emptyContextLogger: Logger,
-    private val backend: LoggerBackend
+    private val backend: LoggerBackend,
+    private val factory: LoggerFactory
 ) {
 
     suspend inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
