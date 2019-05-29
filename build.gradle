@@ -11,7 +11,7 @@ ext {
 }
 
 group = "ru.kontur.jinfra"
-version = "0.1-SNAPSHOT"
+version = "0.9"
 
 dependencies {
     implementation "org.slf4j:slf4j-api:${versions.slf4j}"
