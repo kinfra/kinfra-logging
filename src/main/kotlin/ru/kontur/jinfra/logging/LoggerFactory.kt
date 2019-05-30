@@ -28,14 +28,14 @@ abstract class LoggerFactory {
     open fun getEmptyDecor(): MessageDecor = MessageDecor.Nop
 
     /**
-     * Delegates all calls to another [LoggerFactory].
+     * Delegates all calls to another LoggerFactory ([delegate]).
      *
      * Custom wrapping factories should extend this class to properly implement
      * new methods that can be added in the future.
      */
-    abstract class Wrapper(
-        protected val delegate: LoggerFactory
-    ) : LoggerFactory() {
+    abstract class Wrapper : LoggerFactory() {
+
+        protected abstract val delegate: LoggerFactory
 
         override fun getLoggerBackend(jClass: Class<*>) = delegate.getLoggerBackend(jClass)
 
