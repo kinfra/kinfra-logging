@@ -11,33 +11,35 @@ abstract class LoggerFactory {
      * Obtains [Logger] instance to use in specified [class][kClass].
      */
     fun getLogger(kClass: KClass<*>): Logger {
-        val backend = getLoggerBackend(kClass.java)
+        val backend = getLoggerBackend(kClass)
         return Logger(backend, this)
     }
 
     /**
-     * Provides [LoggerBackend] for a logger to use in specified [class][jClass].
+     * Provides [LoggerBackend] for a logger to use in specified [class][kClass].
      */
-    abstract fun getLoggerBackend(jClass: Class<*>): LoggerBackend
+    protected abstract fun getLoggerBackend(kClass: KClass<*>): LoggerBackend
 
     /**
      * Provides an instance of initial (empty) [MessageDecor].
      *
      * Default implementation returns [MessageDecor.Nop].
      */
-    open fun getEmptyDecor(): MessageDecor = MessageDecor.Nop
+    protected open fun getEmptyDecor(): MessageDecor = MessageDecor.Nop
+
+    internal fun getEmptyDecorInternal(): MessageDecor = getEmptyDecor()
 
     /**
-     * Delegates all calls to another [LoggerFactory].
+     * Delegates all calls to another LoggerFactory ([delegate]).
      *
      * Custom wrapping factories should extend this class to properly implement
      * new methods that can be added in the future.
      */
-    abstract class Wrapper(
-        protected val delegate: LoggerFactory
-    ) : LoggerFactory() {
+    abstract class Wrapper : LoggerFactory() {
 
-        override fun getLoggerBackend(jClass: Class<*>) = delegate.getLoggerBackend(jClass)
+        protected abstract val delegate: LoggerFactory
+
+        override fun getLoggerBackend(kClass: KClass<*>) = delegate.getLoggerBackend(kClass)
 
         override fun getEmptyDecor() = delegate.getEmptyDecor()
 

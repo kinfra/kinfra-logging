@@ -11,7 +11,7 @@ interface LoggerBackend {
 
     object Nop : LoggerBackend {
 
-        override fun isEnabled(level: LogLevel, context: LoggingContext): Boolean = false
+        override fun isEnabled(level: LogLevel, context: LoggingContext) = false
 
         override fun log(
             level: LogLevel,

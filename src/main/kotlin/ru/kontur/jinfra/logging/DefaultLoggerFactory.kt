@@ -10,7 +10,9 @@ import kotlin.reflect.KClass
  *
  * For now it uses SLF4J as logging backend.
  */
-object DefaultLoggerFactory : LoggerFactory.Wrapper(Slf4jBackend.Factory) {
+object DefaultLoggerFactory : LoggerFactory.Wrapper() {
+
+    override val delegate: LoggerFactory = Slf4jBackend.Factory
 
     override fun getEmptyDecor(): MessageDecor = PrefixMessageDecor.EMPTY
 
