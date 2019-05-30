@@ -1,6 +1,6 @@
 package ru.kontur.jinfra.logging
 
-import ru.kontur.jinfra.logging.backend.LoggerBackend
+import ru.kontur.jinfra.logging.LoggingContext.Element
 import ru.kontur.jinfra.logging.decor.MessageDecor
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
@@ -24,6 +24,8 @@ import kotlin.coroutines.coroutineContext
  * Alternatively a LoggingContext [can be passed][Logger.withContext] to an instance of [Logger]
  * in order to use it in all messages logged by the instance:
  * ```
+ * private val logger: Logger = Logger.currentClass()
+ *
  * fun doSomething(..., logContext: LoggingContext) {
  *     val logger = logger.withContext(logContext)
  *     logger.info { "Log message" }
@@ -58,7 +60,7 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
 
     /**
      * Returns [value][Element.value] of the context element having specified key.
-     * If no such element is found, returns null.
+     * If no such element is found, returns `null`.
      */
     abstract operator fun get(key: String): String?
 
@@ -75,8 +77,6 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
 
     /**
      * Render context data into a [message] supplied by [Logger]'s user.
-     *
-     * This method is for use in [LoggerBackend].
      */
     internal fun decorate(message: String, factory: LoggerFactory): String {
         return getDecor(factory).decorate(message)
@@ -91,7 +91,7 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
 
         override fun get(key: String): String? = null
 
-        override fun getDecor(factory: LoggerFactory) = factory.getEmptyDecor()
+        override fun getDecor(factory: LoggerFactory) = factory.getEmptyDecorInternal()
 
         override val elements: Iterable<Element> get() = emptyList()
 
@@ -99,7 +99,7 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
 
         override fun hashCode() = 0
 
-        override fun toString() = "LoggingContext (empty)"
+        override fun toString() = "(empty)"
 
     }
 
@@ -129,13 +129,11 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
         }
 
         override fun getDecor(factory: LoggerFactory): MessageDecor {
-            val cachedDecor = this.cachedDecor?.takeIf { it.factory === factory }
-            return if (cachedDecor != null) {
-                cachedDecor.decor
-            } else {
-                val decor = parent.getDecor(factory).plusElement(element)
-                this.cachedDecor = CachedDecor(decor, factory)
-                decor
+            val cachedDecor = this.cachedDecor
+                ?.takeIf { it.factory === factory }
+
+            return cachedDecor?.decor ?: parent.getDecor(factory).plusElement(element).also {
+                this.cachedDecor = CachedDecor(it, factory)
             }
         }
 
@@ -154,7 +152,7 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
         }
 
         override fun toString(): String {
-            return "LoggingContext$_elements"
+            return elements.joinToString(prefix = "[", postfix = "]")
         }
 
         private class CachedDecor(
@@ -175,15 +173,9 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
             return key == other.key && value == other.value
         }
 
-        override fun hashCode(): Int {
-            var result = key.hashCode()
-            result = 31 * result + value.hashCode()
-            return result
-        }
+        override fun hashCode() = 31 * key.hashCode() + value.hashCode()
 
-        override fun toString(): String {
-            return "$key=$value"
-        }
+        override fun toString() = "$key=$value"
 
     }
 

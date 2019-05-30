@@ -18,14 +18,16 @@ abstract class LoggerFactory {
     /**
      * Provides [LoggerBackend] for a logger to use in specified [class][jClass].
      */
-    abstract fun getLoggerBackend(jClass: Class<*>): LoggerBackend
+    protected abstract fun getLoggerBackend(jClass: Class<*>): LoggerBackend
 
     /**
      * Provides an instance of initial (empty) [MessageDecor].
      *
      * Default implementation returns [MessageDecor.Nop].
      */
-    open fun getEmptyDecor(): MessageDecor = MessageDecor.Nop
+    protected open fun getEmptyDecor(): MessageDecor = MessageDecor.Nop
+
+    internal fun getEmptyDecorInternal(): MessageDecor = getEmptyDecor()
 
     /**
      * Delegates all calls to another LoggerFactory ([delegate]).
