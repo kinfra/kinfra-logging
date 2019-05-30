@@ -6,6 +6,7 @@ import org.slf4j.spi.LocationAwareLogger
 import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.LoggerFactory
 import ru.kontur.jinfra.logging.LoggingContext
+import kotlin.reflect.KClass
 
 internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
@@ -75,8 +76,8 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
     object Factory : LoggerFactory() {
 
-        override fun getLoggerBackend(jClass: Class<*>): LoggerBackend {
-            val slf4jLogger: Logger = org.slf4j.LoggerFactory.getLogger(jClass)
+        override fun getLoggerBackend(kClass: KClass<*>): LoggerBackend {
+            val slf4jLogger: Logger = org.slf4j.LoggerFactory.getLogger(kClass.java)
 
             return if (slf4jLogger is LocationAwareLogger) {
                 LocationAware(slf4jLogger)

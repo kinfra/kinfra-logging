@@ -11,14 +11,14 @@ abstract class LoggerFactory {
      * Obtains [Logger] instance to use in specified [class][kClass].
      */
     fun getLogger(kClass: KClass<*>): Logger {
-        val backend = getLoggerBackend(kClass.java)
+        val backend = getLoggerBackend(kClass)
         return Logger(backend, this)
     }
 
     /**
-     * Provides [LoggerBackend] for a logger to use in specified [class][jClass].
+     * Provides [LoggerBackend] for a logger to use in specified [class][kClass].
      */
-    protected abstract fun getLoggerBackend(jClass: Class<*>): LoggerBackend
+    protected abstract fun getLoggerBackend(kClass: KClass<*>): LoggerBackend
 
     /**
      * Provides an instance of initial (empty) [MessageDecor].
@@ -39,7 +39,7 @@ abstract class LoggerFactory {
 
         protected abstract val delegate: LoggerFactory
 
-        override fun getLoggerBackend(jClass: Class<*>) = delegate.getLoggerBackend(jClass)
+        override fun getLoggerBackend(kClass: KClass<*>) = delegate.getLoggerBackend(kClass)
 
         override fun getEmptyDecor() = delegate.getEmptyDecor()
 
