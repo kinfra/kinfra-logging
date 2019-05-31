@@ -11,9 +11,9 @@ import kotlin.coroutines.coroutineContext
  * Consists of an **ordered** set of [key-value pairs][Element] ([elements]).
  *
  * LoggingContext can be placed in [CoroutineContext] to propagate it inside entire call graph.
- * In that case you should use [CoroutineLogger] that will use that context:
+ * In that case you should use [Logger] that will use that context:
  * ```
- * val logger: CoroutineLogger = Logger.currentClass().withCoroutineContext()
+ * val logger: Logger = Logger.currentClass()
  * val userId = ...
  * withContext(LoggingContext.with("userId", userId)) {
  *     logger.info { "Log message" }
@@ -21,20 +21,20 @@ import kotlin.coroutines.coroutineContext
  * }
  * ```
  *
- * Alternatively a LoggingContext [can be passed][Logger.withContext] to an instance of [Logger]
- * in order to use it in all messages logged by the instance:
+ * Alternatively a LoggingContext [can be passed][Logger.withContext] to an instance of [ContextLogger]
+ * in order to use it for all messages logged by the instance:
  * ```
  * private val logger: Logger = Logger.currentClass()
  *
  * fun doSomething(..., logContext: LoggingContext) {
- *     val logger = logger.withContext(logContext)
+ *     val logger: ContextLogger = logger.withContext(logContext)
  *     logger.info { "Log message" }
  *     ...
  * }
  * ```
  *
  * These approaches can be combined: for example, a context can be captured in a suspending function
- * via [LoggingContext.current] and then used in a [Logger] via [Logger.withContext].
+ * via [LoggingContext.current] and then used in a [ContextLogger] via [Logger.withContext].
  *
  * New elements can be added to the context via [LoggingContext.add] and [LoggingContext.with] (in a coroutine).
  * The context is immutable, adding new elements creates a new context.
@@ -69,7 +69,7 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
      *
      * This context must not contain an element with the same [key].
      *
-     * @see Logger.addContext
+     * @see ContextLogger.addContext
      */
     fun add(key: String, value: Any): LoggingContext {
         return Populated(this, Element(key, value.toString()))
