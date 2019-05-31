@@ -33,7 +33,7 @@ abstract class LoggerFactory {
      * Delegates all calls to another LoggerFactory ([delegate]).
      *
      * Custom wrapping factories should extend this class to properly implement
-     * new methods that can be added in the future.
+     * new methods that may be added in the future.
      */
     abstract class Wrapper : LoggerFactory() {
 

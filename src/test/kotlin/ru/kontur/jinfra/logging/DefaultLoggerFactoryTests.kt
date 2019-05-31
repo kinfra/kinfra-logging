@@ -6,7 +6,7 @@ class DefaultLoggerFactoryTests {
 
     @Test
     fun current_class_logger() {
-        val logger = Logger.currentClass()
+        val logger = Logger.currentClass().withoutContext()
         logger.info { "Log message" }
     }
 
@@ -17,7 +17,7 @@ class DefaultLoggerFactoryTests {
 
     companion object {
 
-        private val companionLogger = Logger.currentClass()
+        private val companionLogger = Logger.currentClass().withoutContext()
 
     }
 

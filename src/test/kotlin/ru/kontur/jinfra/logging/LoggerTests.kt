@@ -1,5 +1,7 @@
 package ru.kontur.jinfra.logging
 
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import ru.kontur.jinfra.logging.test.MockBackend
@@ -7,31 +9,25 @@ import ru.kontur.jinfra.logging.test.MockBackend
 class LoggerTests {
 
     @Test
-    fun level_trace() = test {
-        backend.level = LogLevel.TRACE
+    fun context_logged() = test {
+        withContext(LoggingContext.with("userId", 123)) {
+            logger.info { "message" }
+        }
 
-        logger.trace { "message" }
-        logger.log(LogLevel.TRACE) { "message" }
-
-        assertEquals(2, backend.events.size)
-        assertEquals(LogLevel.TRACE, backend.events[0].level)
-        assertEquals(LogLevel.TRACE, backend.events[1].level)
+        assertEquals(1, backend.events.size)
+        with(backend.events[0]) {
+            assertEquals("123", context["userId"])
+        }
     }
 
-    @Test
-    fun level_trace_filtered() = test {
-        backend.level = LogLevel.DEBUG
-
-        logger.trace { "log message" }
-
-        assertEquals(0, backend.events.size)
-    }
-
-    private fun test(block: TestContext.() -> Unit) {
+    private fun test(block: suspend TestContext.() -> Unit) {
         val backend = MockBackend()
         val logger = Logger(backend, DefaultLoggerFactory)
         val context = TestContext(logger, backend)
-        context.block()
+
+        runBlocking {
+            context.block()
+        }
     }
 
     private class TestContext(

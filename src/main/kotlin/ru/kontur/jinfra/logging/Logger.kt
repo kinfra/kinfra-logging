@@ -2,129 +2,113 @@ package ru.kontur.jinfra.logging
 
 import ru.kontur.jinfra.logging.backend.CallerInfo
 import ru.kontur.jinfra.logging.backend.LoggerBackend
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 /**
+ * An object used to log messages for a specified class.
+ *
+ * Loggers can be obtained from a [LoggerFactory].
+ * There are convenient extensions to obtain a logger from the [default factory][DefaultLoggerFactory]:
+ *
+ *  * [Logger.Companion.forClass] to obtain a logger for use in specified class.
+ *
+ *  * [Logger.Companion.currentClass] to obtain a logger for use in current class,
+ *    i.e. in the class calling that method.
+ *
+ * All logging methods are `suspend`. It allows them to implicitly use [LoggingContext] of the calling coroutine.
+ * If you dont need this **and** you need a logger for non-`suspend` code consider using a [ContextLogger]
+ * with empty context. It can be obtained via [withoutContext].
+ *
  * @see Logger.Companion.currentClass
  * @see Logger.Companion.forClass
+ * @see LoggingContext
+ * @see ContextLogger
  */
-class Logger {
-    // todo: class documentation
-
-    val context: LoggingContext
-
-    private val backend: LoggerBackend
-
+class Logger internal constructor(
+    private val backend: LoggerBackend,
     private val factory: LoggerFactory
+) {
 
     /**
-     * At most one Logger with empty context needs to be constructed with a given LoggerBackend.
-     * This field refers that Logger. May contain `this`.
-     */
-    private val emptyContextLogger: Logger
-
-    /**
-     * At most one CoroutineLogger needs to be constructed with a given LoggerBackend.
-     * Lazily initialized in the logger with empty context.
+     * For a given LoggerBackend at most one ContextLogger with empty context needs to be constructed.
+     * This field refers that logger.
      */
     @Volatile
-    private var coroutineLogger: CoroutineLogger? = null
+    private var emptyContextLogger: ContextLogger? = null
 
-    /**
-     * Create a new logger with empty context.
-     */
-    internal constructor(backend: LoggerBackend, factory: LoggerFactory) {
-        this.context = LoggingContext.EMPTY
-        this.backend = backend
-        this.factory = factory
-        this.emptyContextLogger = this
-    }
-
-    /**
-     * Create a logger with specified non-empty [context].
-     */
-    private constructor(emptyContextLogger: Logger, context: LoggingContext) {
-        this.context = context
-        this.backend = emptyContextLogger.backend
-        this.factory = emptyContextLogger.factory
-        this.emptyContextLogger = emptyContextLogger
-    }
-
-    inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.TRACE, error, lazyMessage)
     }
 
-    inline fun debug(error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun debug(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.DEBUG, error, lazyMessage)
     }
 
-    inline fun info(error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun info(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.INFO, error, lazyMessage)
     }
 
-    inline fun warn(error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun warn(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.WARN, error, lazyMessage)
     }
 
-    inline fun error(error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun error(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.ERROR, error, lazyMessage)
     }
 
-    inline fun log(level: LogLevel, error: Throwable? = null, lazyMessage: () -> String) {
-        if (isEnabled(level)) {
+    suspend inline fun log(level: LogLevel, error: Throwable? = null, lazyMessage: () -> String) {
+        val context = coroutineContext
+        if (isEnabled(level, context)) {
             val message = lazyMessage.invoke()
-            log(level, message, error)
+            log(level, message, error, context)
         }
     }
 
     @PublishedApi
-    internal fun isEnabled(level: LogLevel): Boolean = backend.isEnabled(level, context)
+    internal fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean {
+        val loggingContext = LoggingContext.fromCoroutineContext(context)
+        return backend.isEnabled(level, loggingContext)
+    }
 
     @PublishedApi
-    internal fun log(level: LogLevel, message: String, error: Throwable?) {
-        val decoratedMessage = context.decorate(message, factory)
-        backend.log(level, decoratedMessage, error, context, callerInfo)
+    internal fun log(level: LogLevel, message: String, error: Throwable?, context: CoroutineContext) {
+        val loggingContext = LoggingContext.fromCoroutineContext(context)
+        val decoratedMessage = loggingContext.decorate(message, factory)
+        backend.log(level, decoratedMessage, error, loggingContext, callerInfo)
     }
 
     /**
-     * Returns a [CoroutineLogger] to use logging context of the calling coroutine.
-     *
-     * @see CoroutineLogger.withoutContext
+     * Returns a CoroutineLogger to use logging context of the calling coroutine.
      */
-    fun withCoroutineContext(): CoroutineLogger {
-        return if (this != emptyContextLogger) {
-            emptyContextLogger.withCoroutineContext()
-        } else {
-            coroutineLogger ?: CoroutineLogger(emptyContextLogger, backend, factory).also {
-                coroutineLogger = it
-            }
+    @Deprecated("this object uses coroutine context itself", replaceWith = ReplaceWith("this"))
+    // todo: remove before final release
+    fun withCoroutineContext(): Logger {
+        return this
+    }
+
+    /**
+     * Returns a [ContextLogger] for the same class with an empty context.
+     */
+    fun withoutContext(): ContextLogger {
+        return this.emptyContextLogger ?: ContextLogger(LoggingContext.EMPTY, this, backend, factory).also {
+            this.emptyContextLogger = it
         }
     }
 
     /**
-     * Returns a [Logger] for the same class that use specified [context].
-     *
-     * Note that this instance's context **will not** be merged with the [context].
+     * Returns a [ContextLogger] for the same class that use specified [context].
      */
-    fun withContext(context: LoggingContext): Logger {
+    fun withContext(context: LoggingContext): ContextLogger {
         return if (context == LoggingContext.EMPTY) {
-            emptyContextLogger
+            withoutContext()
         } else {
-            Logger(emptyContextLogger, context)
+            ContextLogger(context, this, backend, factory)
         }
-    }
-
-    /**
-     * Returns a [Logger] for the same class that use a context
-     * composed of this instance's context and an element with specified [key] and [value].
-     *
-     * @see LoggingContext.add
-     */
-    fun addContext(key: String, value: Any): Logger {
-        return withContext(context.add(key, value))
     }
 
     override fun toString(): String {
-        return "Logger(context: $context, backend: $backend)"
+        return "Logger(backend: $backend)"
     }
 
     companion object {
