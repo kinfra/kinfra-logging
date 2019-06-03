@@ -87,6 +87,11 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
     override val key: CoroutineContext.Key<*>
         get() = LoggingContext
 
+    @Deprecated("Logging contexts cannot be merged", level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("other"))
+    operator fun plus(other: LoggingContext): CoroutineContext {
+        return other
+    }
+
     private object Empty : LoggingContext() {
 
         override fun get(key: String): String? = null
