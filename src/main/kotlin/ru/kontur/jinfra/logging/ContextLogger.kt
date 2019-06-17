@@ -8,7 +8,7 @@ import ru.kontur.jinfra.logging.backend.LoggerBackend
  *
  * Use-cases for ContextLogger are:
  *
- *  * You dont care about context at all and need logger methods to be non-`suspend`.
+ *  * You dont care about context at all **and** need logger methods to be non-`suspend`.
  *
  *    In that case just use [Logger.withoutContext].
  *
