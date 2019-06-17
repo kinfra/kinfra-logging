@@ -79,15 +79,6 @@ class Logger internal constructor(
     }
 
     /**
-     * Returns a CoroutineLogger to use logging context of the calling coroutine.
-     */
-    @Deprecated("this object uses coroutine context itself", replaceWith = ReplaceWith("this"))
-    // todo: remove before final release
-    fun withCoroutineContext(): Logger {
-        return this
-    }
-
-    /**
      * Returns a [ContextLogger] for the same class with an empty context.
      */
     fun withoutContext(): ContextLogger {
