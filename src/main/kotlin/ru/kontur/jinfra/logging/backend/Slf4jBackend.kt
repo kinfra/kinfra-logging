@@ -6,13 +6,14 @@ import org.slf4j.spi.LocationAwareLogger
 import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.LoggerFactory
 import ru.kontur.jinfra.logging.LoggingContext
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
 internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
     protected abstract val slf4jLogger: Logger
 
-    override fun isEnabled(level: LogLevel, context: LoggingContext): Boolean {
+    override fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean {
         return with(slf4jLogger) {
             when (level) {
                 LogLevel.TRACE -> isTraceEnabled

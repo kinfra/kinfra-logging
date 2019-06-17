@@ -4,6 +4,7 @@ import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.backend.LoggerBackend
 import ru.kontur.jinfra.logging.LoggingContext
 import ru.kontur.jinfra.logging.backend.CallerInfo
+import kotlin.coroutines.CoroutineContext
 
 class MockBackend : LoggerBackend {
 
@@ -14,9 +15,11 @@ class MockBackend : LoggerBackend {
     val events: List<LoggingEvent>
         get() = this.recordedEvents
 
-    override fun isEnabled(level: LogLevel, context: LoggingContext): Boolean {
+    override fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean {
         val currentLevel = this.level
-        return currentLevel != null && currentLevel <= level && context["ignore"] != "true"
+        val loggingContext = LoggingContext.fromCoroutineContext(context)
+
+        return currentLevel != null && currentLevel <= level && loggingContext["ignore"] != "true"
     }
 
     override fun log(level: LogLevel, message: String, error: Throwable?, context: LoggingContext, caller: CallerInfo) {
@@ -28,12 +31,13 @@ class MockBackend : LoggerBackend {
     private fun findActualCaller(callerInfo: CallerInfo): StackTraceElement {
         val throwable = Throwable()
         val stackTrace = throwable.stackTrace
-        val facadeIndex = stackTrace.indexOfFirst { it.className == callerInfo.facadeClassName }
+        val facadeClassName = callerInfo.facadeClassName
+        val facadeIndex = stackTrace.indexOfFirst { it.className == facadeClassName }
 
         if (facadeIndex == -1) {
-            throw IllegalArgumentException("Failed to find facade in stack trace: ${callerInfo.facadeClassName}")
+            throw IllegalArgumentException("Failed to find facade in stack trace: $facadeClassName")
         } else {
-            return stackTrace[facadeIndex + 1]
+            return stackTrace.drop(facadeIndex).dropWhile { it.className == facadeClassName }.first()
         }
     }
 

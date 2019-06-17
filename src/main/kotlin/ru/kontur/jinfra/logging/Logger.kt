@@ -67,8 +67,7 @@ class Logger internal constructor(
 
     @PublishedApi
     internal fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean {
-        val loggingContext = LoggingContext.fromCoroutineContext(context)
-        return backend.isEnabled(level, loggingContext)
+        return backend.isEnabled(level, context)
     }
 
     @PublishedApi
