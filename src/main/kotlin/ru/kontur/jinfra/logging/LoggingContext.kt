@@ -2,6 +2,7 @@ package ru.kontur.jinfra.logging
 
 import ru.kontur.jinfra.logging.LoggingContext.Element
 import ru.kontur.jinfra.logging.decor.MessageDecor
+import ru.kontur.jinfra.logging.impl.ContextElementSet
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -39,7 +40,7 @@ import kotlin.coroutines.coroutineContext
  * New elements can be added to the context via [LoggingContext.add] and [LoggingContext.with] (in a coroutine).
  * The context is immutable, adding new elements creates a new context.
  */
-abstract class LoggingContext private constructor() : CoroutineContext.Element {
+sealed class LoggingContext : CoroutineContext.Element {
     /*
      * A note on public API:
      * Beware that exposing a method returning a new LoggingContext
@@ -84,6 +85,13 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
 
     protected abstract fun getDecor(factory: LoggerFactory): MessageDecor
 
+    /**
+     * Returns a map containing elements of this context.
+     *
+     * Iteration order of the map is the same as in [elements].
+     */
+    abstract fun asMap(): Map<String, String>
+
     override val key: CoroutineContext.Key<*>
         get() = LoggingContext
 
@@ -100,9 +108,7 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
 
         override val elements: Iterable<Element> get() = emptyList()
 
-        override fun equals(other: Any?) = other is Empty
-
-        override fun hashCode() = 0
+        override fun asMap(): Map<String, String> = emptyMap()
 
         override fun toString() = "(empty)"
 
@@ -113,8 +119,8 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
         private val element: Element
     ) : LoggingContext() {
 
-        // todo: optimize elements (don't use List)
-        private val _elements: List<Element>
+        @Volatile
+        private var _elements: ContextElementSet? = null
 
         @Volatile
         private var cachedDecor: CachedDecor? = null
@@ -125,12 +131,33 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
                 "Context already contains an element with key '$key'" +
                         " (current value: '$currentValue', new value: '${element.value}')"
             }
+        }
 
-            this._elements = parent.elements + element
+        override val elements: ContextElementSet
+            get() = _elements ?: createElements().also {
+                _elements = it
+            }
+
+        private fun createElements(): ContextElementSet {
+            return when (parent) {
+                is Empty -> ContextElementSet(element)
+                is Populated -> ContextElementSet(parent.elements, element)
+            }
         }
 
         override fun get(key: String): String? {
-            return _elements.find { it.key == key }?.value
+            var current = this
+            while (true) {
+                val currentElement = current.element
+                if (currentElement.key == key) {
+                    return currentElement.value
+                }
+
+                when (val next = current.parent) {
+                    is Populated -> current = next
+                    is Empty -> return null
+                }
+            }
         }
 
         override fun getDecor(factory: LoggerFactory): MessageDecor {
@@ -142,22 +169,24 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
             }
         }
 
-        override val elements: Iterable<Element>
-            get() = _elements
+        override fun asMap(): Map<String, String> {
+            return elements.asMap
+        }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is Populated) return false
 
-            return _elements == other._elements
+            return element == other.element && parent == other.parent
         }
 
         override fun hashCode(): Int {
-            return _elements.hashCode()
+            // This hashCode() is more "relaxed" than equals()
+            return elements.hashCode()
         }
 
         override fun toString(): String {
-            return elements.joinToString(prefix = "[", postfix = "]")
+            return elements.toString()
         }
 
         private class CachedDecor(
@@ -168,9 +197,9 @@ abstract class LoggingContext private constructor() : CoroutineContext.Element {
     }
 
     class Element internal constructor(
-        val key: String,
-        val value: String
-    ) {
+        override val key: String,
+        override val value: String
+    ) : Map.Entry<String, String> {
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

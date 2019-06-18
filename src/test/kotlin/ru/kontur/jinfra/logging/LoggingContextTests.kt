@@ -3,7 +3,7 @@ package ru.kontur.jinfra.logging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
@@ -62,14 +62,35 @@ class LoggingContextTests {
     }
 
     @Test
+    fun get() {
+        val context = LoggingContext.EMPTY
+            .add("foo", "123")
+            .add("bar", "456")
+            .add("baz", "789")
+
+        assertEquals("123", context["foo"])
+        assertEquals("456", context["bar"])
+        assertEquals("789", context["baz"])
+        assertNull(context["missing"])
+    }
+
+    @Test
+    fun get_empty() {
+        assertNull(LoggingContext.EMPTY["foo"])
+    }
+
+    @Test
     fun equals_same_elements() {
         val context1 = LoggingContext.EMPTY
-            .add("foo", "bar")
+            .add("foo", "123")
+            .add("bar", "456")
 
         val context2 = LoggingContext.EMPTY
-            .add("foo", "bar")
+            .add("foo", "123")
+            .add("bar", "456")
 
         assertEquals(context1, context2)
+        assertEquals(context1.hashCode(), context2.hashCode())
     }
 
     @Test
@@ -92,6 +113,26 @@ class LoggingContextTests {
 
         val postfixed = context.decorate("message", KeyPostfixLoggerFactory)
         assertEquals("message foo bar", postfixed)
+    }
+
+    @Test
+    fun as_map() {
+        val context = LoggingContext.EMPTY
+            .add("foo", "123")
+            .add("bar", "456")
+
+        val expected = mapOf(
+            "bar" to "456",
+            "foo" to "123"
+        )
+
+        val map = context.asMap()
+        assertEquals(expected, map)
+        assertEquals(expected.entries, map.entries)
+        assertTrue(map.containsKey("foo"))
+        assertFalse(map.containsKey("baz"))
+        assertTrue(map.containsValue("456"))
+        assertFalse(map.containsValue("000"))
     }
 
     private object KeyPrefixLoggerFactory : LoggerFactory() {
