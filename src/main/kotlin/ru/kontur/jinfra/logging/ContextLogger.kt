@@ -2,13 +2,14 @@ package ru.kontur.jinfra.logging
 
 import ru.kontur.jinfra.logging.backend.CallerInfo
 import ru.kontur.jinfra.logging.backend.LoggerBackend
+import ru.kontur.jinfra.logging.backend.LoggingRequest
 
 /**
  * A logger with a fixed [context] attached to it.
  *
  * Use-cases for ContextLogger are:
  *
- *  * You dont care about context at all and need logger methods to be non-`suspend`.
+ *  * You dont care about context at all **and** need logger methods to be non-`suspend`.
  *
  *    In that case just use [Logger.withoutContext].
  *
@@ -59,7 +60,15 @@ class ContextLogger internal constructor(
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?) {
         val decoratedMessage = context.decorate(message, factory)
-        backend.log(level, decoratedMessage, error, context, callerInfo)
+        val request = LoggingRequest(
+            level = level,
+            message = decoratedMessage,
+            error = error,
+            context = this.context,
+            caller = callerInfo
+        )
+
+        backend.log(request)
     }
 
     /**

@@ -7,5 +7,6 @@ data class LoggingEvent(
     val level: LogLevel,
     val message: String,
     val error: Throwable?,
-    val context: LoggingContext
+    val context: LoggingContext,
+    val caller: StackTraceElement
 )

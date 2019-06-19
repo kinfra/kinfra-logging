@@ -2,6 +2,7 @@ package ru.kontur.jinfra.logging
 
 import ru.kontur.jinfra.logging.backend.CallerInfo
 import ru.kontur.jinfra.logging.backend.LoggerBackend
+import ru.kontur.jinfra.logging.backend.LoggingRequest
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -67,24 +68,22 @@ class Logger internal constructor(
 
     @PublishedApi
     internal fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean {
-        val loggingContext = LoggingContext.fromCoroutineContext(context)
-        return backend.isEnabled(level, loggingContext)
+        return backend.isEnabled(level, context)
     }
 
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?, context: CoroutineContext) {
         val loggingContext = LoggingContext.fromCoroutineContext(context)
         val decoratedMessage = loggingContext.decorate(message, factory)
-        backend.log(level, decoratedMessage, error, loggingContext, callerInfo)
-    }
+        val request = LoggingRequest(
+            level = level,
+            message = decoratedMessage,
+            error = error,
+            context = loggingContext,
+            caller = callerInfo
+        )
 
-    /**
-     * Returns a CoroutineLogger to use logging context of the calling coroutine.
-     */
-    @Deprecated("this object uses coroutine context itself", replaceWith = ReplaceWith("this"))
-    // todo: remove before final release
-    fun withCoroutineContext(): Logger {
-        return this
+        backend.log(request)
     }
 
     /**
