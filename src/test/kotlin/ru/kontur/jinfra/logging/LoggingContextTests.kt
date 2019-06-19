@@ -15,9 +15,21 @@ class LoggingContextTests {
 
     @Test
     fun empty_does_not_have_elements() {
-        val elements = LoggingContext.EMPTY.elements.toList()
+        val context = LoggingContext.EMPTY
 
-        assertEquals(emptyList<LoggingContext.Element>(), elements)
+        assertTrue(context.isEmpty())
+        assertTrue(context.elements.toList().isEmpty())
+    }
+
+    @Test
+    fun populated_is_not_empty() {
+        val context = LoggingContext.EMPTY.add("foo", "bar")
+
+        val elements = context.elements.toList()
+        assertFalse(context.isEmpty())
+        assertEquals(1, elements.size)
+        assertEquals("foo", elements[0].key)
+        assertEquals("bar", elements[0].value)
     }
 
     @Test

@@ -92,6 +92,8 @@ sealed class LoggingContext : CoroutineContext.Element {
      */
     abstract fun asMap(): Map<String, String>
 
+    abstract fun isEmpty(): Boolean
+
     override val key: CoroutineContext.Key<*>
         get() = LoggingContext
 
@@ -109,6 +111,8 @@ sealed class LoggingContext : CoroutineContext.Element {
         override val elements: Iterable<Element> get() = emptyList()
 
         override fun asMap(): Map<String, String> = emptyMap()
+
+        override fun isEmpty() = true
 
         override fun toString() = "(empty)"
 
@@ -172,6 +176,8 @@ sealed class LoggingContext : CoroutineContext.Element {
         override fun asMap(): Map<String, String> {
             return elements.asMap
         }
+
+        override fun isEmpty() = false
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
