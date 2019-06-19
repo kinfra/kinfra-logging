@@ -2,6 +2,7 @@ package ru.kontur.jinfra.logging
 
 import ru.kontur.jinfra.logging.backend.CallerInfo
 import ru.kontur.jinfra.logging.backend.LoggerBackend
+import ru.kontur.jinfra.logging.backend.LoggingRequest
 
 /**
  * A logger with a fixed [context] attached to it.
@@ -59,7 +60,15 @@ class ContextLogger internal constructor(
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?) {
         val decoratedMessage = context.decorate(message, factory)
-        backend.log(level, decoratedMessage, error, context, callerInfo)
+        val request = LoggingRequest(
+            level = level,
+            message = decoratedMessage,
+            error = error,
+            context = this.context,
+            caller = callerInfo
+        )
+
+        backend.log(request)
     }
 
     /**

@@ -4,6 +4,7 @@ import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.backend.LoggerBackend
 import ru.kontur.jinfra.logging.LoggingContext
 import ru.kontur.jinfra.logging.backend.CallerInfo
+import ru.kontur.jinfra.logging.backend.LoggingRequest
 import kotlin.coroutines.CoroutineContext
 
 class MockBackend : LoggerBackend {
@@ -22,9 +23,12 @@ class MockBackend : LoggerBackend {
         return currentLevel != null && currentLevel <= level && loggingContext["ignore"] != "true"
     }
 
-    override fun log(level: LogLevel, message: String, error: Throwable?, context: LoggingContext, caller: CallerInfo) {
-        val actualCallerFrame = findActualCaller(caller)
-        val event = LoggingEvent(level, message, error, context, actualCallerFrame)
+    override fun log(request: LoggingRequest) {
+        val actualCallerFrame = findActualCaller(request.caller)
+        val event = with(request) {
+            LoggingEvent(level, message, error, context, actualCallerFrame)
+        }
+
         recordedEvents += event
     }
 

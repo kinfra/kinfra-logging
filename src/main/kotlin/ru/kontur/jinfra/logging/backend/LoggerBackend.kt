@@ -38,14 +38,8 @@ interface LoggerBackend {
      * Log a message.
      *
      * Implementation should not do additional filtering here, but do it in [isEnabled].
-     *
-     * @param level level of the message
-     * @param message decorated message
-     * @param error a [Throwable] that should be logged together with the message
-     * @param context context of the message
-     * @param caller information about caller for location aware logging
      */
-    fun log(level: LogLevel, message: String, error: Throwable?, context: LoggingContext, caller: CallerInfo)
+    fun log(request: LoggingRequest)
 
     /**
      * Implementation that do nothing.
@@ -60,13 +54,7 @@ interface LoggerBackend {
         /**
          * Does nothing.
          */
-        override fun log(
-            level: LogLevel,
-            message: String,
-            error: Throwable?,
-            context: LoggingContext,
-            caller: CallerInfo
-        ) = Unit
+        override fun log(request: LoggingRequest) = Unit
 
     }
 

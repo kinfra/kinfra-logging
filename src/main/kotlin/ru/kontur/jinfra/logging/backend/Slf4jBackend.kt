@@ -29,16 +29,12 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
         override val slf4jLogger: Logger
     ) : Slf4jBackend() {
 
-        override fun log(
-            level: LogLevel,
-            message: String,
-            error: Throwable?,
-            context: LoggingContext,
-            caller: CallerInfo
-        ) {
+        override fun log(request: LoggingRequest) {
+            val message = request.message
+            val error = request.error
 
             with(slf4jLogger) {
-                when (level) {
+                when (request.level) {
                     LogLevel.TRACE -> trace(message, error)
                     LogLevel.DEBUG -> debug(message, error)
                     LogLevel.INFO -> info(message, error)
@@ -54,15 +50,8 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
         override val slf4jLogger: LocationAwareLogger
     ) : Slf4jBackend() {
 
-        override fun log(
-            level: LogLevel,
-            message: String,
-            error: Throwable?,
-            context: LoggingContext,
-            caller: CallerInfo
-        ) {
-
-            val slf4jLevel = when (level) {
+        override fun log(request: LoggingRequest) {
+            val slf4jLevel = when (request.level) {
                 LogLevel.TRACE -> EventConstants.TRACE_INT
                 LogLevel.DEBUG -> EventConstants.DEBUG_INT
                 LogLevel.INFO -> EventConstants.INFO_INT
@@ -70,7 +59,7 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
                 LogLevel.ERROR -> EventConstants.ERROR_INT
             }
 
-            slf4jLogger.log(null, caller.facadeClassName, slf4jLevel, message, null, error)
+            slf4jLogger.log(null, request.caller.facadeClassName, slf4jLevel, request.message, null, request.error)
         }
 
     }

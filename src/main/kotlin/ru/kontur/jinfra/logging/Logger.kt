@@ -2,6 +2,7 @@ package ru.kontur.jinfra.logging
 
 import ru.kontur.jinfra.logging.backend.CallerInfo
 import ru.kontur.jinfra.logging.backend.LoggerBackend
+import ru.kontur.jinfra.logging.backend.LoggingRequest
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -74,7 +75,15 @@ class Logger internal constructor(
     internal fun log(level: LogLevel, message: String, error: Throwable?, context: CoroutineContext) {
         val loggingContext = LoggingContext.fromCoroutineContext(context)
         val decoratedMessage = loggingContext.decorate(message, factory)
-        backend.log(level, decoratedMessage, error, loggingContext, callerInfo)
+        val request = LoggingRequest(
+            level = level,
+            message = decoratedMessage,
+            error = error,
+            context = loggingContext,
+            caller = callerInfo
+        )
+
+        backend.log(request)
     }
 
     /**
