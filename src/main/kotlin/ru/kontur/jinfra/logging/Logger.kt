@@ -77,7 +77,8 @@ class Logger internal constructor(
         val decoratedMessage = loggingContext.decorate(message, factory)
         val request = LoggingRequest(
             level = level,
-            message = decoratedMessage,
+            message = message,
+            decoratedMessage = decoratedMessage,
             error = error,
             context = loggingContext,
             caller = callerInfo

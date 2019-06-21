@@ -57,7 +57,7 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
     ) : Slf4jBackend() {
 
         override fun log(request: LoggingRequest) {
-            val message = request.message
+            val message = request.decoratedMessage
             val error = request.error
 
             withMdc(request.context) {
@@ -90,7 +90,7 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
             with(request) {
                 withMdc(context) {
-                    slf4jLogger.log(null, caller.facadeClassName, slf4jLevel, message, null, error)
+                    slf4jLogger.log(null, caller.facadeClassName, slf4jLevel, decoratedMessage, null, error)
                 }
             }
         }

@@ -18,6 +18,7 @@ class DefaultLoggerFactoryTests {
     companion object {
 
         private val companionLogger = Logger.currentClass().withoutContext()
+            .addContext("test", "testValue")
 
     }
 

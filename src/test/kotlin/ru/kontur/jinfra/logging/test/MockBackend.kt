@@ -26,7 +26,7 @@ class MockBackend : LoggerBackend {
     override fun log(request: LoggingRequest) {
         val actualCallerFrame = findActualCaller(request.caller)
         val event = with(request) {
-            LoggingEvent(level, message, error, context, actualCallerFrame)
+            LoggingEvent(level, decoratedMessage, error, context, actualCallerFrame)
         }
 
         recordedEvents += event
