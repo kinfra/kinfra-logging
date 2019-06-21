@@ -1,6 +1,7 @@
 package ru.kontur.jinfra.logging.backend
 
 import org.slf4j.Logger
+import org.slf4j.MDC
 import org.slf4j.event.EventConstants
 import org.slf4j.spi.LocationAwareLogger
 import ru.kontur.jinfra.logging.LogLevel
@@ -25,6 +26,32 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
         }
     }
 
+    protected inline fun withMdc(context: LoggingContext, block: () -> Unit) {
+        try {
+            populateMdc(context)
+
+            block()
+        } finally {
+            cleanupMdc(context)
+        }
+    }
+
+    private fun populateMdc(context: LoggingContext) {
+        if (!context.isEmpty()) {
+            for (element in context.elements) {
+                MDC.put(element.key, element.value)
+            }
+        }
+    }
+
+    private fun cleanupMdc(context: LoggingContext) {
+        if (!context.isEmpty()) {
+            for (element in context.elements) {
+                MDC.remove(element.key)
+            }
+        }
+    }
+
     private class Basic(
         override val slf4jLogger: Logger
     ) : Slf4jBackend() {
@@ -33,13 +60,15 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
             val message = request.message
             val error = request.error
 
-            with(slf4jLogger) {
-                when (request.level) {
-                    LogLevel.TRACE -> trace(message, error)
-                    LogLevel.DEBUG -> debug(message, error)
-                    LogLevel.INFO -> info(message, error)
-                    LogLevel.WARN -> warn(message, error)
-                    LogLevel.ERROR -> error(message, error)
+            withMdc(request.context) {
+                with(slf4jLogger) {
+                    when (request.level) {
+                        LogLevel.TRACE -> trace(message, error)
+                        LogLevel.DEBUG -> debug(message, error)
+                        LogLevel.INFO -> info(message, error)
+                        LogLevel.WARN -> warn(message, error)
+                        LogLevel.ERROR -> error(message, error)
+                    }
                 }
             }
         }
@@ -59,7 +88,11 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
                 LogLevel.ERROR -> EventConstants.ERROR_INT
             }
 
-            slf4jLogger.log(null, request.caller.facadeClassName, slf4jLevel, request.message, null, request.error)
+            with(request) {
+                withMdc(context) {
+                    slf4jLogger.log(null, caller.facadeClassName, slf4jLevel, message, null, error)
+                }
+            }
         }
 
     }
