@@ -1,6 +1,6 @@
 package ru.kontur.jinfra.logging.backend
 
-class CallerInfo internal constructor(
+class CallerInfo(
     /**
      * Fully qualified name of the facade class that was called by user.
      *
