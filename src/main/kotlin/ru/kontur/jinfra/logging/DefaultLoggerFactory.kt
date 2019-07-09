@@ -18,36 +18,22 @@ object DefaultLoggerFactory : LoggerFactory.Wrapper() {
 
 }
 
-/**
- * Obtains [Logger] instance to use in specified [class][kClass] using default [LoggerFactory].
- */
+// todo: remove before release
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated(
+    "use member method",
+    replaceWith = ReplaceWith("Logger.forClass(kClass)", imports = ["ru.kontur.jinfra.logging.Logger"])
+)
 fun Logger.Companion.forClass(kClass: KClass<*>): Logger {
     return DefaultLoggerFactory.getLogger(kClass)
 }
 
-/**
- * Obtains [Logger] instance to use in the current class using default [LoggerFactory].
- *
- * Usage:
- * ```
- *   class MyClass {
- *       private val logger = Logger.currentClass()
- *       ...
- *   }
- * ```
- * Also can be used in a companion object:
- * ```
- *   class MyClass {
- *       ...
- *
- *       companion object {
- *           private val logger = Logger.currentClass()
- *           ...
- *       }
- *   }
- * ```
- */
-@Suppress("NOTHING_TO_INLINE")
+// todo: remove before release
+@Suppress("NOTHING_TO_INLINE", "EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated(
+    "use member method",
+    replaceWith = ReplaceWith("Logger.currentClass()", imports = ["ru.kontur.jinfra.logging.Logger"])
+)
 inline fun Logger.Companion.currentClass(): Logger {
     return DefaultLoggerFactory.currentClassLogger()
 }
