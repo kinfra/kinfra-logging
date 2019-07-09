@@ -17,6 +17,8 @@ abstract class LoggerFactory {
 
     /**
      * Provides [LoggerBackend] for a logger to use in specified [class][kClass].
+     *
+     * This method must be thread-safe.
      */
     protected abstract fun getLoggerBackend(kClass: KClass<*>): LoggerBackend
 
@@ -51,7 +53,7 @@ abstract class LoggerFactory {
 }
 
 /**
- * Obtains [Logger] instance to use in the current class using default [LoggerFactory].
+ * Obtains [Logger] instance to use in the current class (that is the class calling this method).
  */
 @Suppress("NOTHING_TO_INLINE")
 inline fun LoggerFactory.currentClassLogger(): Logger {

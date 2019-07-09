@@ -1,5 +1,8 @@
 package ru.kontur.jinfra.logging
 
+/**
+ * Importance level of a log message.
+ */
 enum class LogLevel {
     TRACE,
     DEBUG,

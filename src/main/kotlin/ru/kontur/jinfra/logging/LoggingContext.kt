@@ -77,7 +77,7 @@ sealed class LoggingContext : CoroutineContext.Element {
     }
 
     /**
-     * Render context data into a [message] supplied by [Logger]'s user.
+     * Renders context data into a [message] supplied by [Logger]'s user.
      */
     internal fun decorate(message: String, factory: LoggerFactory): String {
         return getDecor(factory).decorate(message)
@@ -92,6 +92,9 @@ sealed class LoggingContext : CoroutineContext.Element {
      */
     abstract fun asMap(): Map<String, String>
 
+    /**
+     * Returns `true` if the context is empty (contains no elements), `false` otherwise.
+     */
     abstract fun isEmpty(): Boolean
 
     override val key: CoroutineContext.Key<*>
@@ -202,6 +205,10 @@ sealed class LoggingContext : CoroutineContext.Element {
 
     }
 
+    /**
+     * A key-value pair that represents an aspect of context in which some code is executed.
+     * For example, identifier of a user, operation or request.
+     */
     class Element internal constructor(
         override val key: String,
         override val value: String

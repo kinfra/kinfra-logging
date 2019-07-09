@@ -5,7 +5,7 @@ import kotlin.coroutines.CoroutineContext
 
 /**
  * Called by [Logger] and [ContextLogger] to perform logging.
- * The [Logger] itself is a user-faced class that is not extensible nor composable.
+ * The [Logger] itself is a user-faced class that is neither extensible nor composable.
  *
  * In order to use custom LoggerBackend one should create custom [LoggerFactory] and return
  * the backend from [LoggerFactory.getLoggerBackend] method.
@@ -29,8 +29,8 @@ interface LoggerBackend {
      *  * A coroutine context containing LoggingContext
      *  * Actual context of the calling coroutine
      *
-     * Thus it is **strongly discouraged** to use [context] any way apart from `LoggingContext.fromCoroutineContext()`.
-     *
+     * Thus it is **strongly discouraged** to use [context] any way apart from passing it to
+     * `LoggingContext.fromCoroutineContext()`.
      */
     fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean
 
