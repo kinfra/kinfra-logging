@@ -17,7 +17,6 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
     override fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean {
         return with(slf4jLogger) {
             when (level) {
-                LogLevel.TRACE -> isTraceEnabled
                 LogLevel.DEBUG -> isDebugEnabled
                 LogLevel.INFO -> isInfoEnabled
                 LogLevel.WARN -> isWarnEnabled
@@ -63,7 +62,6 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
             withMdc(request.context) {
                 with(slf4jLogger) {
                     when (request.level) {
-                        LogLevel.TRACE -> trace(message, error)
                         LogLevel.DEBUG -> debug(message, error)
                         LogLevel.INFO -> info(message, error)
                         LogLevel.WARN -> warn(message, error)
@@ -81,7 +79,6 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
         override fun log(request: LoggingRequest) {
             val slf4jLevel = when (request.level) {
-                LogLevel.TRACE -> EventConstants.TRACE_INT
                 LogLevel.DEBUG -> EventConstants.DEBUG_INT
                 LogLevel.INFO -> EventConstants.INFO_INT
                 LogLevel.WARN -> EventConstants.WARN_INT

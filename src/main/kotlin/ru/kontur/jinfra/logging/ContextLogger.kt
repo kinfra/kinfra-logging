@@ -27,11 +27,6 @@ class ContextLogger internal constructor(
     private val factory: LoggerFactory
 ) {
 
-    /** [Log][log] a message with [TRACE][LogLevel.TRACE] level. */
-    inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
-        log(LogLevel.TRACE, error, lazyMessage)
-    }
-
     /** [Log][log] a message with [DEBUG][LogLevel.DEBUG] level. */
     inline fun debug(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.DEBUG, error, lazyMessage)

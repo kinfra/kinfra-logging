@@ -11,7 +11,7 @@ class MockBackend : LoggerBackend {
 
     private val recordedEvents: MutableList<LoggingEvent> = mutableListOf()
 
-    var level: LogLevel? = LogLevel.TRACE
+    var level: LogLevel? = LogLevel.DEBUG
 
     val events: List<LoggingEvent>
         get() = this.recordedEvents

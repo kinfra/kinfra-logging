@@ -39,11 +39,6 @@ class Logger internal constructor(
     @Volatile
     private var emptyContextLogger: ContextLogger? = null
 
-    /** [Log][log] a message with [TRACE][LogLevel.TRACE] level. */
-    suspend inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
-        log(LogLevel.TRACE, error, lazyMessage)
-    }
-
     /** [Log][log] a message with [DEBUG][LogLevel.DEBUG] level. */
     suspend inline fun debug(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.DEBUG, error, lazyMessage)

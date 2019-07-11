@@ -85,12 +85,6 @@ class ContextLoggerTests {
     }
 
     @Test
-    fun level_trace() = testLevel(LogLevel.TRACE) { trace { it } }
-
-    @Test
-    fun level_trace_filtered() = testLevelFiltered(LogLevel.TRACE) { trace { it } }
-
-    @Test
     fun level_debug() = testLevel(LogLevel.DEBUG) { debug { it } }
 
     @Test
