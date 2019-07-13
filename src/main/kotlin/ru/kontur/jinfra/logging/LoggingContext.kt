@@ -57,7 +57,7 @@ sealed class LoggingContext : CoroutineContext.Element {
     /**
      * Elements contained in this context.
      */
-    abstract val elements: Iterable<Element>
+    abstract val elements: Collection<Element>
 
     /**
      * Returns [value][Element.value] of the context element having specified key.
@@ -73,7 +73,7 @@ sealed class LoggingContext : CoroutineContext.Element {
      * @see ContextLogger.addContext
      */
     fun add(key: String, value: Any): LoggingContext {
-        return Populated(this, Element(key, value.toString()))
+        return PopulatedContext(this, Element(key, value.toString()))
     }
 
     /**
@@ -83,7 +83,7 @@ sealed class LoggingContext : CoroutineContext.Element {
         return getDecor(factory).decorate(message)
     }
 
-    protected abstract fun getDecor(factory: LoggerFactory): MessageDecor
+    internal abstract fun getDecor(factory: LoggerFactory): MessageDecor
 
     /**
      * Returns a map containing elements of this context.
@@ -105,111 +105,11 @@ sealed class LoggingContext : CoroutineContext.Element {
         return other
     }
 
-    private object Empty : LoggingContext() {
-
-        override fun get(key: String): String? = null
-
-        override fun getDecor(factory: LoggerFactory) = factory.getEmptyDecorInternal()
-
-        override val elements: Iterable<Element> get() = emptyList()
-
-        override fun asMap(): Map<String, String> = emptyMap()
-
-        override fun isEmpty() = true
-
-        override fun toString() = "(empty)"
-
-    }
-
-    private class Populated(
-        private val parent: LoggingContext,
-        private val element: Element
-    ) : LoggingContext() {
-
-        @Volatile
-        private var _elements: ContextElementSet? = null
-
-        @Volatile
-        private var cachedDecor: CachedDecor? = null
-
-        init {
-            val currentValue = parent[element.key]
-            require(currentValue == null) {
-                "Context already contains an element with key '$key'" +
-                        " (current value: '$currentValue', new value: '${element.value}')"
-            }
-        }
-
-        override val elements: ContextElementSet
-            get() = _elements ?: createElements().also {
-                _elements = it
-            }
-
-        private fun createElements(): ContextElementSet {
-            return when (parent) {
-                is Empty -> ContextElementSet(element)
-                is Populated -> ContextElementSet(parent.elements, element)
-            }
-        }
-
-        override fun get(key: String): String? {
-            var current = this
-            while (true) {
-                val currentElement = current.element
-                if (currentElement.key == key) {
-                    return currentElement.value
-                }
-
-                when (val next = current.parent) {
-                    is Populated -> current = next
-                    is Empty -> return null
-                }
-            }
-        }
-
-        override fun getDecor(factory: LoggerFactory): MessageDecor {
-            val cachedDecor = this.cachedDecor
-                ?.takeIf { it.factory === factory }
-
-            return cachedDecor?.decor ?: parent.getDecor(factory).plusElement(element).also {
-                this.cachedDecor = CachedDecor(it, factory)
-            }
-        }
-
-        override fun asMap(): Map<String, String> {
-            return elements.asMap
-        }
-
-        override fun isEmpty() = false
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is Populated) return false
-
-            return element == other.element && parent == other.parent
-        }
-
-        override fun hashCode(): Int {
-            // This hashCode() is more "relaxed" than equals()
-            return elements.hashCode()
-        }
-
-        override fun toString(): String {
-            return elements.toString()
-        }
-
-        private class CachedDecor(
-            val decor: MessageDecor,
-            val factory: LoggerFactory
-        )
-
-    }
-
     /**
      * A key-value pair that represents an aspect of context in which some code is executed.
      * For example, identifier of a user, operation or request.
      */
-    class Element internal constructor(
+    class Element(
         override val key: String,
         override val value: String
     ) : Map.Entry<String, String> {
@@ -231,7 +131,7 @@ sealed class LoggingContext : CoroutineContext.Element {
         /**
          * Empty context. This context has no elements.
          */
-        val EMPTY: LoggingContext = Empty
+        val EMPTY: LoggingContext = EmptyContext
 
         /**
          * Returns [LoggingContext] of the calling coroutine.
@@ -258,5 +158,97 @@ sealed class LoggingContext : CoroutineContext.Element {
         }
 
     }
+
+}
+
+private object EmptyContext : LoggingContext() {
+
+    override fun get(key: String): String? = null
+
+    override fun getDecor(factory: LoggerFactory) = factory.getEmptyDecorInternal()
+
+    override val elements: Collection<Element> get() = emptyList()
+
+    override fun asMap(): Map<String, String> = emptyMap()
+
+    override fun isEmpty() = true
+
+    override fun toString() = "(empty)"
+
+}
+
+private class PopulatedContext(
+    private val parent: LoggingContext,
+    private val element: Element
+) : LoggingContext() {
+
+    @Volatile
+    private var allElements: ContextElementSet? = null
+
+    @Volatile
+    private var cachedDecor: CachedDecor? = null
+
+    init {
+        val currentValue = parent[element.key]
+        require(currentValue == null) {
+            "Context already contains an element with key '$key'" +
+                    " (current value: '$currentValue', new value: '${element.value}')"
+        }
+    }
+
+    override val elements: ContextElementSet
+        get() = allElements ?: createElements().also {
+            allElements = it
+        }
+
+    private fun createElements(): ContextElementSet {
+        return when (parent) {
+            is EmptyContext -> ContextElementSet(element)
+            is PopulatedContext -> ContextElementSet(parent.elements, element)
+        }
+    }
+
+    override fun get(key: String): String? {
+        return if (element.key == key) {
+            element.value
+        } else {
+            parent[key]
+        }
+    }
+
+    override fun getDecor(factory: LoggerFactory): MessageDecor {
+        val cachedDecor = this.cachedDecor
+            ?.takeIf { it.factory === factory }
+
+        return cachedDecor?.decor ?: parent.getDecor(factory).plusElement(element).also {
+            this.cachedDecor = CachedDecor(it, factory)
+        }
+    }
+
+    override fun asMap(): Map<String, String> {
+        return elements.asMap
+    }
+
+    override fun isEmpty() = false
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PopulatedContext) return false
+
+        return element == other.element && parent == other.parent
+    }
+
+    override fun hashCode(): Int {
+        return element.hashCode() + parent.hashCode()
+    }
+
+    override fun toString(): String {
+        return elements.toString()
+    }
+
+    private class CachedDecor(
+        val decor: MessageDecor,
+        val factory: LoggerFactory
+    )
 
 }
