@@ -27,26 +27,33 @@ class ContextLogger internal constructor(
     private val factory: LoggerFactory
 ) {
 
-    inline fun trace(error: Throwable? = null, lazyMessage: () -> String) {
-        log(LogLevel.TRACE, error, lazyMessage)
-    }
-
+    /** [Log][log] a message with [DEBUG][LogLevel.DEBUG] level. */
     inline fun debug(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.DEBUG, error, lazyMessage)
     }
 
+    /** [Log][log] a message with [INFO][LogLevel.INFO] level. */
     inline fun info(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.INFO, error, lazyMessage)
     }
 
+    /** [Log][log] a message with [WARN][LogLevel.WARN] level. */
     inline fun warn(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.WARN, error, lazyMessage)
     }
 
+    /** [Log][log] a message with [ERROR][LogLevel.ERROR] level. */
     inline fun error(error: Throwable? = null, lazyMessage: () -> String) {
         log(LogLevel.ERROR, error, lazyMessage)
     }
 
+    /**
+     * Log a message with specified [level] produced by [lazyMessage] lambda.
+     *
+     * The lambda will be called only if logging [is enabled][LoggerBackend.isEnabled].
+     *
+     * @param error a [Throwable] that should be logged with the message
+     */
     inline fun log(level: LogLevel, error: Throwable? = null, lazyMessage: () -> String) {
         if (isEnabled(level)) {
             val message = lazyMessage.invoke()
@@ -62,7 +69,8 @@ class ContextLogger internal constructor(
         val decoratedMessage = context.decorate(message, factory)
         val request = LoggingRequest(
             level = level,
-            message = decoratedMessage,
+            message = message,
+            decoratedMessage = decoratedMessage,
             error = error,
             context = this.context,
             caller = callerInfo

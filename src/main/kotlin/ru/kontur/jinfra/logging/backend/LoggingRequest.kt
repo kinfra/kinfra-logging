@@ -1,19 +1,22 @@
 package ru.kontur.jinfra.logging.backend
 
 import ru.kontur.jinfra.logging.*
+import ru.kontur.jinfra.logging.decor.MessageDecor
 
 /**
  * Represents [Logger]'s request to its [backend][LoggerBackend] to log a message.
  *
- * @param level Level of the message
- * @param message Decorated message
- * @param error [Throwable] that should be logged together with the message
- * @param context Context of the message
- * @param caller Information about caller for location aware logging
+ * @property level level of the message
+ * @property message the message, as supplied by user
+ * @property decoratedMessage the [message] decorated with [MessageDecor]
+ * @property error a [Throwable] that should be logged together with the message
+ * @property context context of the message
+ * @property caller information about caller for location aware logging
  */
 class LoggingRequest(
     val level: LogLevel,
     val message: String,
+    val decoratedMessage: String,
     val error: Throwable?,
     val context: LoggingContext,
     val caller: CallerInfo
