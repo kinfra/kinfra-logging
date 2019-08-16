@@ -115,6 +115,19 @@ class LoggingContextTests {
     }
 
     @Test
+    fun empty_key_prohibited() {
+        assertThrows<IllegalArgumentException> {
+            LoggingContext.EMPTY.add("", "foo")
+        }
+    }
+
+    @Test
+    fun empty_value_allowed() {
+        val context = LoggingContext.EMPTY.add("foo", "")
+        assertEquals("", context["foo"])
+    }
+
+    @Test
     fun decor_differently() {
         val context = LoggingContext.EMPTY
             .add("foo", "123")

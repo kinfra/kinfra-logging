@@ -30,4 +30,13 @@ class PrefixMessageDecorTests {
         assertEquals("[123] [456] message", decor.decorate("message"))
     }
 
+    @Test
+    fun decor_empty_element() {
+        val decor = PrefixMessageDecor.EMPTY
+            .plusElement(LoggingContext.Element("foo", ""))
+            .plusElement(LoggingContext.Element("bar", "123"))
+
+        assertEquals("[123] message", decor.decorate("message"))
+    }
+
 }

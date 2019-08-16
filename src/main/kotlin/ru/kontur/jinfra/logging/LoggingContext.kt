@@ -73,7 +73,8 @@ sealed class LoggingContext : CoroutineContext.Element {
      * @see ContextLogger.addContext
      */
     fun add(key: String, value: Any): LoggingContext {
-        return PopulatedContext(this, Element(key, value.toString()))
+        val element = Element(key, value.toString())
+        return PopulatedContext(this, element)
     }
 
     /**
@@ -114,6 +115,10 @@ sealed class LoggingContext : CoroutineContext.Element {
         override val value: String
     ) : Map.Entry<String, String> {
 
+        init {
+            require(key.isNotEmpty()) { "Key must not be empty" }
+        }
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is Element) return false
@@ -122,7 +127,13 @@ sealed class LoggingContext : CoroutineContext.Element {
 
         override fun hashCode() = 31 * key.hashCode() + value.hashCode()
 
-        override fun toString() = "$key=$value"
+        override fun toString(): String {
+            return if (value.isNotEmpty()) {
+                "$key=$value"
+            } else {
+                key
+            }
+        }
 
     }
 
