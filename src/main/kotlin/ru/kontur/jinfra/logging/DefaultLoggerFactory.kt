@@ -1,6 +1,6 @@
 package ru.kontur.jinfra.logging
 
-import ru.kontur.jinfra.logging.backend.Slf4jBackend
+import ru.kontur.jinfra.logging.backend.slf4j.Slf4jBackend
 import ru.kontur.jinfra.logging.decor.MessageDecor
 import ru.kontur.jinfra.logging.decor.PrefixMessageDecor
 import kotlin.reflect.KClass
