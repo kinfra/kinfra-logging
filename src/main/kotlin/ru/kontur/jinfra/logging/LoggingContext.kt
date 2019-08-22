@@ -66,7 +66,7 @@ sealed class LoggingContext : CoroutineContext.Element {
     abstract operator fun get(key: String): String?
 
     /**
-     * Returns a context composed from this context and an element with specified [key] and [value].
+     * Returns a context composed of this context and an element with specified [key] and [value].
      *
      * This context must not contain an element with the same [key].
      *

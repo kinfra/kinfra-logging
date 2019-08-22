@@ -2,7 +2,7 @@ package ru.kontur.jinfra.logging.backend
 
 class CallerInfo(
     /**
-     * Fully qualified name of the facade class that was called by user.
+     * The fully qualified name of the facade class called by user code.
      *
      * At the time of [LoggerBackend.log] call the stack contains following frames:
      * ```

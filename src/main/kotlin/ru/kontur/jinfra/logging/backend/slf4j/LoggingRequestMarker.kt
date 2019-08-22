@@ -16,7 +16,7 @@ class LoggingRequestMarker private constructor(
 
     constructor(request: LoggingRequest) : this(request, MarkerFactory.getDetachedMarker(NAME))
 
-    // Serialize plain marker without non-serializable LoggingRequest
+    // Serialize a plain marker without non-serializable LoggingRequest
     private fun writeReplace(): Any = delegate
 
     companion object {

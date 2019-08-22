@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 /**
  * Default implementation of [LoggerFactory].
  *
- * For now it uses SLF4J as logging backend.
+ * For now, it uses SLF4J as logging backend.
  */
 object DefaultLoggerFactory : LoggerFactory.Wrapper() {
 
