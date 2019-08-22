@@ -133,10 +133,10 @@ class LoggingContextTests {
             .add("foo", "123")
             .add("bar", "456")
 
-        val prefixed = context.decorate("message", KeyPrefixLoggerFactory)
+        val prefixed = context.getDecor(KeyPrefixLoggerFactory).decorate("message")
         assertEquals("foo bar message", prefixed)
 
-        val postfixed = context.decorate("message", KeyPostfixLoggerFactory)
+        val postfixed = context.getDecor(KeyPostfixLoggerFactory).decorate("message")
         assertEquals("message foo bar", postfixed)
     }
 

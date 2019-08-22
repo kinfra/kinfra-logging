@@ -78,12 +78,8 @@ sealed class LoggingContext : CoroutineContext.Element {
     }
 
     /**
-     * Renders context data into a [message] supplied by [Logger]'s user.
+     * Obtains a decor instance using given [factory] to render data of this context.
      */
-    internal fun decorate(message: String, factory: LoggerFactory): String {
-        return getDecor(factory).decorate(message)
-    }
-
     internal abstract fun getDecor(factory: LoggerFactory): MessageDecor
 
     /**

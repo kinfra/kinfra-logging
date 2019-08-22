@@ -7,6 +7,7 @@ import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.LoggingContext
 import ru.kontur.jinfra.logging.backend.CallerInfo
 import ru.kontur.jinfra.logging.backend.LoggingRequest
+import ru.kontur.jinfra.logging.decor.MessageDecor
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
@@ -16,7 +17,15 @@ class LoggingRequestMarkerTests {
 
     @Test
     fun serialized_successfully() {
-        val request = LoggingRequest(LogLevel.INFO, "message", "message", null, LoggingContext.EMPTY, CallerInfo("foo"))
+        val request = LoggingRequest(
+            level = LogLevel.INFO,
+            message = "message",
+            error = null,
+            context = LoggingContext.EMPTY,
+            decor = MessageDecor.Nop,
+            caller = CallerInfo("foo")
+        )
+
         val marker = LoggingRequestMarker(request)
 
         val data = ByteArrayOutputStream().let { baos ->

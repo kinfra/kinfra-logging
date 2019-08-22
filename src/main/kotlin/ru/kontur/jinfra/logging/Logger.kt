@@ -82,11 +82,10 @@ class Logger internal constructor(
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?, context: CoroutineContext) {
         val loggingContext = LoggingContext.fromCoroutineContext(context)
-        val decoratedMessage = loggingContext.decorate(message, factory)
         val request = LoggingRequest(
             level = level,
             message = message,
-            decoratedMessage = decoratedMessage,
+            decor = loggingContext.getDecor(factory),
             error = error,
             context = loggingContext,
             caller = callerInfo

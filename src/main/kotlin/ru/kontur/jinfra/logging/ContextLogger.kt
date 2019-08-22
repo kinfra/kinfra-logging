@@ -66,11 +66,10 @@ class ContextLogger internal constructor(
 
     @PublishedApi
     internal fun log(level: LogLevel, message: String, error: Throwable?) {
-        val decoratedMessage = context.decorate(message, factory)
         val request = LoggingRequest(
             level = level,
             message = message,
-            decoratedMessage = decoratedMessage,
+            decor = context.getDecor(factory),
             error = error,
             context = this.context,
             caller = callerInfo
