@@ -66,23 +66,20 @@ sealed class LoggingContext : CoroutineContext.Element {
     abstract operator fun get(key: String): String?
 
     /**
-     * Returns a context composed from this context and an element with specified [key] and [value].
+     * Returns a context composed of this context and an element with specified [key] and [value].
      *
      * This context must not contain an element with the same [key].
      *
      * @see ContextLogger.addContext
      */
     fun add(key: String, value: Any): LoggingContext {
-        return PopulatedContext(this, Element(key, value.toString()))
+        val element = Element(key, value.toString())
+        return PopulatedContext(this, element)
     }
 
     /**
-     * Renders context data into a [message] supplied by [Logger]'s user.
+     * Obtains a decor instance using given [factory] to render data of this context.
      */
-    internal fun decorate(message: String, factory: LoggerFactory): String {
-        return getDecor(factory).decorate(message)
-    }
-
     internal abstract fun getDecor(factory: LoggerFactory): MessageDecor
 
     /**
@@ -114,6 +111,10 @@ sealed class LoggingContext : CoroutineContext.Element {
         override val value: String
     ) : Map.Entry<String, String> {
 
+        init {
+            require(key.isNotEmpty()) { "Key must not be empty" }
+        }
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is Element) return false
@@ -122,7 +123,13 @@ sealed class LoggingContext : CoroutineContext.Element {
 
         override fun hashCode() = 31 * key.hashCode() + value.hashCode()
 
-        override fun toString() = "$key=$value"
+        override fun toString(): String {
+            return if (value.isNotEmpty()) {
+                "$key=$value"
+            } else {
+                key
+            }
+        }
 
     }
 

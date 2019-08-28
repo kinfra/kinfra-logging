@@ -115,15 +115,28 @@ class LoggingContextTests {
     }
 
     @Test
+    fun empty_key_prohibited() {
+        assertThrows<IllegalArgumentException> {
+            LoggingContext.EMPTY.add("", "foo")
+        }
+    }
+
+    @Test
+    fun empty_value_allowed() {
+        val context = LoggingContext.EMPTY.add("foo", "")
+        assertEquals("", context["foo"])
+    }
+
+    @Test
     fun decor_differently() {
         val context = LoggingContext.EMPTY
             .add("foo", "123")
             .add("bar", "456")
 
-        val prefixed = context.decorate("message", KeyPrefixLoggerFactory)
+        val prefixed = context.getDecor(KeyPrefixLoggerFactory).decorate("message")
         assertEquals("foo bar message", prefixed)
 
-        val postfixed = context.decorate("message", KeyPostfixLoggerFactory)
+        val postfixed = context.getDecor(KeyPostfixLoggerFactory).decorate("message")
         assertEquals("message foo bar", postfixed)
     }
 

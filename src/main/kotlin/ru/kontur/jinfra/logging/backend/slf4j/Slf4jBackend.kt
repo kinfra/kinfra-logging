@@ -1,4 +1,4 @@
-package ru.kontur.jinfra.logging.backend
+package ru.kontur.jinfra.logging.backend.slf4j
 
 import org.slf4j.Logger
 import org.slf4j.MDC
@@ -7,6 +7,8 @@ import org.slf4j.spi.LocationAwareLogger
 import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.LoggerFactory
 import ru.kontur.jinfra.logging.LoggingContext
+import ru.kontur.jinfra.logging.backend.LoggerBackend
+import ru.kontur.jinfra.logging.backend.LoggingRequest
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
@@ -56,16 +58,17 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
     ) : Slf4jBackend() {
 
         override fun log(request: LoggingRequest) {
+            val marker = LoggingRequestMarker(request)
             val message = request.decoratedMessage
             val error = request.error
 
             withMdc(request.context) {
                 with(slf4jLogger) {
                     when (request.level) {
-                        LogLevel.DEBUG -> debug(message, error)
-                        LogLevel.INFO -> info(message, error)
-                        LogLevel.WARN -> warn(message, error)
-                        LogLevel.ERROR -> error(message, error)
+                        LogLevel.DEBUG -> debug(marker, message, error)
+                        LogLevel.INFO -> info(marker, message, error)
+                        LogLevel.WARN -> warn(marker, message, error)
+                        LogLevel.ERROR -> error(marker, message, error)
                     }
                 }
             }
@@ -78,17 +81,19 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
     ) : Slf4jBackend() {
 
         override fun log(request: LoggingRequest) {
+            val marker = LoggingRequestMarker(request)
             val slf4jLevel = when (request.level) {
                 LogLevel.DEBUG -> EventConstants.DEBUG_INT
                 LogLevel.INFO -> EventConstants.INFO_INT
                 LogLevel.WARN -> EventConstants.WARN_INT
                 LogLevel.ERROR -> EventConstants.ERROR_INT
             }
+            val message = request.decoratedMessage
+            val error = request.error
+            val fqcn = request.caller.facadeClassName
 
-            with(request) {
-                withMdc(context) {
-                    slf4jLogger.log(null, caller.facadeClassName, slf4jLevel, decoratedMessage, null, error)
-                }
+            withMdc(request.context) {
+                slf4jLogger.log(marker, fqcn, slf4jLevel, message, null, error)
             }
         }
 

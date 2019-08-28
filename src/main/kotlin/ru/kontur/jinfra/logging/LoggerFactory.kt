@@ -57,20 +57,19 @@ abstract class LoggerFactory {
  */
 @Suppress("NOTHING_TO_INLINE")
 inline fun LoggerFactory.currentClassLogger(): Logger {
-    val currentClass = getCallingClass()
-    return getLogger(currentClass.kotlin)
+    /*
+     * All internal callers of this function must be inline!
+     * It is required for [MethodHandles.lookup] to work correctly.
+     */
+    return getLogger(MethodHandles.lookup()!!)
 }
 
-/**
- * Obtains caller's class via [MethodHandles].
- *
- * **Note:** All internal callers of this function must be inline!
- * It is required for [MethodHandles.lookup] to work correctly.
- */
-@Suppress("NOTHING_TO_INLINE")
 @PublishedApi
-internal inline fun getCallingClass(): Class<*> {
-    val currentClass = MethodHandles.lookup().lookupClass()
-    // skip companion object's class
-    return currentClass.enclosingClass ?: currentClass
+internal fun LoggerFactory.getLogger(lookup: MethodHandles.Lookup): Logger {
+    val clazz = lookup.lookupClass().let {
+        // skip companion object's class
+        it.enclosingClass ?: it
+    }
+
+    return getLogger(clazz.kotlin)
 }

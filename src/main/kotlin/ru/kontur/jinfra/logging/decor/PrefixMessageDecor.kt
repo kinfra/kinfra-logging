@@ -9,6 +9,8 @@ import ru.kontur.jinfra.logging.LoggingContext
  * ```
  * [123] [456] Hi!
  * ```
+ *
+ * Context elements with empty values are ignored.
  */
 internal class PrefixMessageDecor private constructor(
     private val prefix: String
@@ -19,7 +21,13 @@ internal class PrefixMessageDecor private constructor(
     }
 
     override fun plusElement(element: LoggingContext.Element): MessageDecor {
-        return PrefixMessageDecor("$prefix[${element.value}] ")
+        val value = element.value
+
+        return if (value.isNotEmpty()) {
+            PrefixMessageDecor("$prefix[$value] ")
+        } else {
+            this
+        }
     }
 
     companion object {
