@@ -1,6 +1,15 @@
 Pre-release versions
 ====================
 
+## Version 0.13.1
+
+### Fixes
+
+  - Bring back erroneously removed non-inline
+    `Logger.Companion.forClass()` extension to fix ABI compatibility.
+
+    Now it is deprecated with `HIDDEN` level.
+
 ## Version 0.13
 
 ### New features
