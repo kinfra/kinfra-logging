@@ -40,37 +40,38 @@ class Logger internal constructor(
     private var emptyContextLogger: ContextLogger? = null
 
     /** [Log][log] a message with [DEBUG][LogLevel.DEBUG] level. */
-    suspend inline fun debug(error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun debug(error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.DEBUG, error, lazyMessage)
     }
 
     /** [Log][log] a message with [INFO][LogLevel.INFO] level. */
-    suspend inline fun info(error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun info(error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.INFO, error, lazyMessage)
     }
 
     /** [Log][log] a message with [WARN][LogLevel.WARN] level. */
-    suspend inline fun warn(error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun warn(error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.WARN, error, lazyMessage)
     }
 
     /** [Log][log] a message with [ERROR][LogLevel.ERROR] level. */
-    suspend inline fun error(error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun error(error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.ERROR, error, lazyMessage)
     }
 
     /**
-     * Log a message with specified [level] produced by [lazyMessage] lambda.
+     * Log a message produced by [lazyMessage] lambda with specified [level].
      *
      * The lambda will be called only if logging [is enabled][LoggerBackend.isEnabled].
      *
      * @param error a [Throwable] that should be logged with the message
      */
-    suspend inline fun log(level: LogLevel, error: Throwable? = null, lazyMessage: () -> String) {
+    suspend inline fun log(level: LogLevel, error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         val context = coroutineContext
         if (isEnabled(level, context)) {
-            val message = lazyMessage.invoke()
-            log(level, message, error, context)
+            val messageBuilder = MessageBuilder.STUB
+            val message = lazyMessage.invoke(messageBuilder)
+            log(level, message, messageBuilder, error, context)
         }
     }
 
@@ -80,7 +81,14 @@ class Logger internal constructor(
     }
 
     @PublishedApi
-    internal fun log(level: LogLevel, message: String, error: Throwable?, context: CoroutineContext) {
+    internal fun log(
+        level: LogLevel,
+        message: String,
+        @Suppress("UNUSED_PARAMETER") messageBuilder: MessageBuilder,
+        error: Throwable?,
+        context: CoroutineContext
+    ) {
+
         val loggingContext = LoggingContext.fromCoroutineContext(context)
         val request = LoggingRequest(
             level = level,
@@ -116,6 +124,13 @@ class Logger internal constructor(
 
     override fun toString(): String {
         return "Logger(backend: $backend)"
+    }
+
+    // todo: remove this eventually
+    @PublishedApi
+    @Deprecated("For ABI compatibility with versions <= 0.13.1", level = DeprecationLevel.HIDDEN)
+    internal fun log(level: LogLevel, message: String, error: Throwable?, context: CoroutineContext) {
+        log(level, message, MessageBuilder.STUB, error, context)
     }
 
     companion object {
