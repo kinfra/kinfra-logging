@@ -2,6 +2,7 @@ package ru.kontur.jinfra.logging
 
 import ru.kontur.jinfra.logging.backend.CallerInfo
 import ru.kontur.jinfra.logging.backend.LoggerBackend
+import ru.kontur.jinfra.logging.backend.LoggingAdditionalData
 import ru.kontur.jinfra.logging.backend.LoggingRequest
 
 /**
@@ -73,12 +74,19 @@ class ContextLogger internal constructor(
         error: Throwable?
     ) {
 
+        val additionalData = if (error == null) {
+            LoggingAdditionalData.NONE
+        } else {
+            LoggingAdditionalData(
+                throwable = error
+            )
+        }
         val request = LoggingRequest(
             level = level,
             message = message,
-            decor = context.getDecor(factory),
-            error = error,
+            additionalData = additionalData,
             context = this.context,
+            decor = context.getDecor(factory),
             caller = callerInfo
         )
 

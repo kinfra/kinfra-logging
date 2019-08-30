@@ -6,6 +6,7 @@ import org.slf4j.Marker
 import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.LoggingContext
 import ru.kontur.jinfra.logging.backend.CallerInfo
+import ru.kontur.jinfra.logging.backend.LoggingAdditionalData
 import ru.kontur.jinfra.logging.backend.LoggingRequest
 import ru.kontur.jinfra.logging.decor.MessageDecor
 import java.io.ByteArrayInputStream
@@ -20,7 +21,7 @@ class LoggingRequestMarkerTests {
         val request = LoggingRequest(
             level = LogLevel.INFO,
             message = "message",
-            error = null,
+            additionalData = LoggingAdditionalData.NONE,
             context = LoggingContext.EMPTY,
             decor = MessageDecor.Nop,
             caller = CallerInfo("foo")
