@@ -2,6 +2,7 @@ package ru.kontur.jinfra.logging
 
 import ru.kontur.jinfra.logging.backend.CallerInfo
 import ru.kontur.jinfra.logging.backend.LoggerBackend
+import ru.kontur.jinfra.logging.backend.LoggingAdditionalData
 import ru.kontur.jinfra.logging.backend.LoggingRequest
 
 /**
@@ -28,36 +29,37 @@ class ContextLogger internal constructor(
 ) {
 
     /** [Log][log] a message with [DEBUG][LogLevel.DEBUG] level. */
-    inline fun debug(error: Throwable? = null, lazyMessage: () -> String) {
+    inline fun debug(error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.DEBUG, error, lazyMessage)
     }
 
     /** [Log][log] a message with [INFO][LogLevel.INFO] level. */
-    inline fun info(error: Throwable? = null, lazyMessage: () -> String) {
+    inline fun info(error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.INFO, error, lazyMessage)
     }
 
     /** [Log][log] a message with [WARN][LogLevel.WARN] level. */
-    inline fun warn(error: Throwable? = null, lazyMessage: () -> String) {
+    inline fun warn(error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.WARN, error, lazyMessage)
     }
 
     /** [Log][log] a message with [ERROR][LogLevel.ERROR] level. */
-    inline fun error(error: Throwable? = null, lazyMessage: () -> String) {
+    inline fun error(error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.ERROR, error, lazyMessage)
     }
 
     /**
-     * Log a message with specified [level] produced by [lazyMessage] lambda.
+     * Log a message produced by [lazyMessage] lambda with specified [level].
      *
      * The lambda will be called only if logging [is enabled][LoggerBackend.isEnabled].
      *
      * @param error a [Throwable] that should be logged with the message
      */
-    inline fun log(level: LogLevel, error: Throwable? = null, lazyMessage: () -> String) {
+    inline fun log(level: LogLevel, error: Throwable? = null, lazyMessage: MessageBuilder.() -> String) {
         if (isEnabled(level)) {
-            val message = lazyMessage.invoke()
-            log(level, message, error)
+            val messageBuilder = MessageBuilder.STUB
+            val message = lazyMessage.invoke(messageBuilder)
+            log(level, message, messageBuilder, error)
         }
     }
 
@@ -65,13 +67,26 @@ class ContextLogger internal constructor(
     internal fun isEnabled(level: LogLevel): Boolean = backend.isEnabled(level, context)
 
     @PublishedApi
-    internal fun log(level: LogLevel, message: String, error: Throwable?) {
+    internal fun log(
+        level: LogLevel,
+        message: String,
+        @Suppress("UNUSED_PARAMETER") messageBuilder: MessageBuilder,
+        error: Throwable?
+    ) {
+
+        val additionalData = if (error == null) {
+            LoggingAdditionalData.NONE
+        } else {
+            LoggingAdditionalData(
+                throwable = error
+            )
+        }
         val request = LoggingRequest(
             level = level,
             message = message,
-            decor = context.getDecor(factory),
-            error = error,
+            additionalData = additionalData,
             context = this.context,
+            decor = context.getDecor(factory),
             caller = callerInfo
         )
 
@@ -108,6 +123,13 @@ class ContextLogger internal constructor(
 
     override fun toString(): String {
         return "ContextLogger(context: $context, backend: $backend)"
+    }
+
+    // todo: remove this eventually
+    @PublishedApi
+    @Deprecated("For ABI compatibility with versions <= 0.13.1", level = DeprecationLevel.HIDDEN)
+    internal fun log(level: LogLevel, message: String, error: Throwable?) {
+        log(level, message, MessageBuilder.STUB, error)
     }
 
     companion object {

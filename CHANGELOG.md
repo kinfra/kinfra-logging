@@ -1,6 +1,17 @@
 Pre-release versions
 ====================
 
+## Version 0.14
+
+This version brings preparations for future extensions.
+
+### Upgrade considerations
+
+API & ABI of backend interfaces are not compatible with the previous version.
+
+Usage of `this` in a lambda passed to `Logger.log()` and other similar methods
+will not work anymore as `this` now refers to a `MessageBuilder` object.
+
 ## Version 0.13.1
 
 ### Fixes
