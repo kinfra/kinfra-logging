@@ -53,6 +53,10 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
         }
     }
 
+    override fun toString(): String {
+        return "SLF4J(${slf4jLogger.name})"
+    }
+
     private class Basic(
         override val slf4jLogger: Logger
     ) : Slf4jBackend() {
