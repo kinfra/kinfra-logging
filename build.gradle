@@ -24,6 +24,10 @@ dependencies {
     testRuntimeOnly "ch.qos.logback:logback-classic:${versions.logback}"
 }
 
+jar {
+    manifest.attributes "Automatic-Module-Name": "ru.kontur.jinfra.logging"
+}
+
 publishing {
     repositories {
         def properties = project.properties
