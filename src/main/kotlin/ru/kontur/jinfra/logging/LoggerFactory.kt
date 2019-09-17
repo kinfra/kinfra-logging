@@ -9,8 +9,10 @@ abstract class LoggerFactory {
 
     /**
      * Obtains [Logger] instance to use in specified [class][kClass].
+     *
+     * This method is thread safe. Calls [getLoggerBackend] internally.
      */
-    fun getLogger(kClass: KClass<*>): Logger {
+    open fun getLogger(kClass: KClass<*>): Logger {
         val backend = getLoggerBackend(kClass)
         return Logger(backend, this)
     }
