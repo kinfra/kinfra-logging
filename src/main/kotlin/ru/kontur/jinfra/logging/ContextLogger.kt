@@ -86,7 +86,7 @@ class ContextLogger internal constructor(
             message = message,
             additionalData = additionalData,
             context = this.context,
-            decor = context.getDecor(factory),
+            decor = context.getDecor(factory.getEmptyDecorInternal()),
             caller = callerInfo
         )
 

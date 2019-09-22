@@ -32,6 +32,7 @@ internal class PrefixMessageDecor private constructor(
 
     companion object {
 
+        @JvmField
         val EMPTY = PrefixMessageDecor("")
 
     }

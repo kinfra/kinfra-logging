@@ -9,6 +9,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
 import ru.kontur.jinfra.logging.decor.MessageDecor
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.properties.Delegates
 import kotlin.reflect.KClass
 
 class LoggingContextTests {
@@ -133,11 +134,31 @@ class LoggingContextTests {
             .add("foo", "123")
             .add("bar", "456")
 
-        val prefixed = context.getDecor(KeyPrefixLoggerFactory).decorate("message")
+        val prefixed = context.decorate("message", KeyPrefixLoggerFactory)
         assertEquals("foo bar message", prefixed)
 
-        val postfixed = context.getDecor(KeyPostfixLoggerFactory).decorate("message")
+        val postfixed = context.decorate("message", KeyPostfixLoggerFactory)
         assertEquals("message foo bar", postfixed)
+    }
+
+    @Test
+    fun decor_differently_same_factory() {
+        val factory = DelegatingLoggerFactory
+        val context = LoggingContext.EMPTY
+            .add("foo", "123")
+            .add("bar", "456")
+
+        factory.delegate = KeyPrefixLoggerFactory
+        val prefixed = context.decorate("message", factory)
+        assertEquals("foo bar message", prefixed)
+
+        factory.delegate = KeyPostfixLoggerFactory
+        val postfixed = context.decorate("message", factory)
+        assertEquals("message foo bar", postfixed)
+    }
+
+    private fun LoggingContext.decorate(message: String, factory: LoggerFactory): String {
+        return getDecor(factory.getEmptyDecorInternal()).decorate(message)
     }
 
     @Test
@@ -158,6 +179,10 @@ class LoggingContextTests {
         assertFalse(map.containsKey("baz"))
         assertTrue(map.containsValue("456"))
         assertFalse(map.containsValue("000"))
+    }
+
+    private object DelegatingLoggerFactory : LoggerFactory.Wrapper() {
+        public override var delegate: LoggerFactory by Delegates.notNull()
     }
 
     private object KeyPrefixLoggerFactory : LoggerFactory() {

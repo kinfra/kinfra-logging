@@ -103,7 +103,7 @@ class Logger internal constructor(
             message = message,
             additionalData = additionalData,
             context = loggingContext,
-            decor = loggingContext.getDecor(factory),
+            decor = loggingContext.getDecor(factory.getEmptyDecorInternal()),
             caller = callerInfo
         )
 

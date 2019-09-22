@@ -78,9 +78,9 @@ sealed class LoggingContext : CoroutineContext.Element {
     }
 
     /**
-     * Obtains a decor instance using given [factory] to render data of this context.
+     * Obtains a decor instance based on specified [empty] decor to render data of this context.
      */
-    internal abstract fun getDecor(factory: LoggerFactory): MessageDecor
+    internal abstract fun getDecor(empty: MessageDecor): MessageDecor
 
     /**
      * Returns a map containing elements of this context.
@@ -172,7 +172,7 @@ private object EmptyContext : LoggingContext() {
 
     override fun get(key: String): String? = null
 
-    override fun getDecor(factory: LoggerFactory) = factory.getEmptyDecorInternal()
+    override fun getDecor(empty: MessageDecor) = empty
 
     override val elements: Collection<Element> get() = emptyList()
 
@@ -223,12 +223,12 @@ private class PopulatedContext(
         }
     }
 
-    override fun getDecor(factory: LoggerFactory): MessageDecor {
+    override fun getDecor(empty: MessageDecor): MessageDecor {
         val cachedDecor = this.cachedDecor
-            ?.takeIf { it.factory === factory }
+            ?.takeIf { it.empty == empty }
 
-        return cachedDecor?.decor ?: parent.getDecor(factory).plusElement(element).also {
-            this.cachedDecor = CachedDecor(it, factory)
+        return cachedDecor?.filled ?: parent.getDecor(empty).plusElement(element).also {
+            this.cachedDecor = CachedDecor(it, empty)
         }
     }
 
@@ -254,8 +254,8 @@ private class PopulatedContext(
     }
 
     private class CachedDecor(
-        val decor: MessageDecor,
-        val factory: LoggerFactory
+        val filled: MessageDecor,
+        val empty: MessageDecor
     )
 
 }
