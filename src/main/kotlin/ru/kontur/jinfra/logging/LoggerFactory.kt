@@ -5,6 +5,26 @@ import ru.kontur.jinfra.logging.decor.MessageDecor
 import java.lang.invoke.MethodHandles
 import kotlin.reflect.KClass
 
+/**
+ * Entry point to an implementation of logging.
+ *
+ * There are two sides of this class:
+ *
+ *  * Front-end
+ *
+ *    From the user perspective, the most important method is [getLogger].
+ *    It is called directly by user code to obtain a [Logger] to use.
+ *
+ *    This method can be overridden, but most implementations don't need that.
+ *
+ *  * Back-end
+ *
+ *    This side is represented by the methods to be implemented by concrete LoggerFactory:
+ *
+ *     * `getLoggerBackend()`: provides a [LoggerBackend] to use by logger returned from [getLogger].
+ *
+ *     * `getEmptyDecor()`: provides a [MessageDecor] to render context data in log messages.
+ */
 abstract class LoggerFactory {
 
     /**

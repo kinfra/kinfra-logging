@@ -147,6 +147,16 @@ class Logger internal constructor(
 
         /**
          * Obtains a [Logger] instance to use in specified [class][kClass] using default [LoggerFactory].
+         *
+         * This method is useful in an open class:
+         * ```
+         *     open class BaseClass {
+         *         protected val logger = Logger.forClass(this::class)
+         *         ...
+         *     }
+         * ```
+         *
+         * Note that [Logger.currentClass] would return a logger for `BaseClass`.
          */
         fun forClass(kClass: KClass<*>): Logger {
             return DefaultLoggerFactory.getLogger(kClass)
