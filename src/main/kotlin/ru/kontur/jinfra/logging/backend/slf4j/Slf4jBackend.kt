@@ -8,14 +8,13 @@ import ru.kontur.jinfra.logging.LogLevel
 import ru.kontur.jinfra.logging.LoggingContext
 import ru.kontur.jinfra.logging.backend.LoggerBackend
 import ru.kontur.jinfra.logging.backend.LoggingRequest
-import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
 internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
     protected abstract val slf4jLogger: Logger
 
-    override fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean {
+    override fun isEnabled(level: LogLevel, context: LoggingContext): Boolean {
         return with(slf4jLogger) {
             when (level) {
                 LogLevel.DEBUG -> isDebugEnabled
@@ -29,7 +28,6 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
     protected inline fun withMdc(context: LoggingContext, block: () -> Unit) {
         try {
             populateMdc(context)
-
             block()
         } finally {
             cleanupMdc(context)

@@ -1,9 +1,6 @@
 package ru.kontur.jinfra.logging
 
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
 import ru.kontur.jinfra.logging.test.MockBackend
 import ru.kontur.jinfra.logging.test.NoDecorFactory
@@ -25,7 +22,7 @@ class LoggerTests {
     fun log_uses_context() = test {
         val expectedContext = LoggingContext.with("userId", 123)
 
-        withContext(expectedContext) {
+        withLoggingContext(expectedContext) {
             logger.info { "message" }
         }
 
@@ -36,35 +33,13 @@ class LoggerTests {
     @Test
     fun is_enabled_uses_context() = test {
         // Messages with this context will not pass MockBackend.isEnabled() check
-        val uninterestingContext = LoggingContext.current().add("ignore", "true")
+        val uninterestingContext = LoggingContext.current().with("ignore", "true")
 
-        withContext(uninterestingContext) {
+        withLoggingContext(uninterestingContext) {
             logger.info { "message" }
         }
 
         assertEquals(0, backend.events.size)
-    }
-
-    @Test
-    fun transform_to_context_logger_and_back_is_same() = test {
-        assertSame(logger, logger.withoutContext().withCoroutineContext())
-    }
-
-    @Test
-    fun without_context_uses_empty_context() = test {
-        assertEquals(LoggingContext.EMPTY, logger.withoutContext().context)
-    }
-
-    @Test
-    fun with_context_empty() = test {
-        assertEquals(logger.withoutContext().context, logger.withContext(LoggingContext.EMPTY).context)
-    }
-
-    @Test
-    fun with_context() = test {
-        val context = LoggingContext.with("foo", "bar")
-
-        assertEquals(context, logger.withContext(context).context)
     }
 
     @Test
@@ -104,7 +79,7 @@ class LoggerTests {
     @Test
     fun level_error_filtered() = testLevelFiltered(LogLevel.ERROR) { error { it } }
 
-    private fun testLevel(level: LogLevel, logMethod: suspend Logger.(String) -> Unit) = test {
+    private fun testLevel(level: LogLevel, logMethod: Logger.(String) -> Unit) = test {
         backend.level = level
 
         logger.log(level) { "message" }
@@ -115,7 +90,7 @@ class LoggerTests {
         assertEquals(level, backend.events[1].level)
     }
 
-    private fun testLevelFiltered(level: LogLevel, logMethod: suspend Logger.(String) -> Unit) = test {
+    private fun testLevelFiltered(level: LogLevel, logMethod: Logger.(String) -> Unit) = test {
         backend.level = null
 
         logger.log(level) { "message" }
@@ -124,14 +99,12 @@ class LoggerTests {
         assertEquals(0, backend.events.size)
     }
 
-    private fun test(block: suspend TestContext.() -> Unit) {
+    private fun test(block: TestContext.() -> Unit) {
         val backend = MockBackend()
         val logger = Logger(backend, NoDecorFactory)
         val context = TestContext(logger, backend)
 
-        runBlocking {
-            context.block()
-        }
+        context.block()
     }
 
     private class TestContext(

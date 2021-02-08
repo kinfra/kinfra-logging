@@ -1,11 +1,13 @@
 package ru.kontur.jinfra.logging.backend
 
-import ru.kontur.jinfra.logging.*
-import kotlin.coroutines.CoroutineContext
+import ru.kontur.jinfra.logging.LogLevel
+import ru.kontur.jinfra.logging.Logger
+import ru.kontur.jinfra.logging.LoggerFactory
+import ru.kontur.jinfra.logging.LoggingContext
 
 /**
- * Called by [Logger] and [ContextLogger] to perform logging.
- * The [Logger] itself is a user-faced class that is neither extensible nor composable.
+ * Called by [Logger] to perform logging.
+ * The [Logger] itself is a user-facing class that is neither extensible nor composable.
  *
  * In order to use custom LoggerBackend one should create custom [LoggerFactory] and return
  * the backend from [LoggerFactory.getLoggerBackend] method.
@@ -13,26 +15,11 @@ import kotlin.coroutines.CoroutineContext
 interface LoggerBackend {
 
     /**
-     * Determines if a message with a given [level] should be logged.
+     * Determines if a message with a given [level] in a given [context] should be logged.
      *
      * If the returned value is `false`, logger will not evaluate the message and call [log] method.
-     *
-     * Context of the message may be taken into consideration as well as the level.
-     * If the implementation is going to do this, it should acquire [LoggingContext] from the [context]:
-     * ```
-     * val loggingContext = LoggingContext.fromCoroutineContext(context)
-     * ```
-     *
-     * The [context] is **not** guaranteed to be any of:
-     *
-     *  * LoggingContext itself
-     *  * A coroutine context containing LoggingContext
-     *  * Actual context of the calling coroutine
-     *
-     * Thus it is **strongly discouraged** to use [context] any way apart from passing it to
-     * `LoggingContext.fromCoroutineContext()`.
      */
-    fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean
+    fun isEnabled(level: LogLevel, context: LoggingContext): Boolean
 
     /**
      * Log a message.
@@ -49,7 +36,7 @@ interface LoggerBackend {
         /**
          * Returns `false`.
          */
-        override fun isEnabled(level: LogLevel, context: CoroutineContext) = false
+        override fun isEnabled(level: LogLevel, context: LoggingContext) = false
 
         /**
          * Does nothing.

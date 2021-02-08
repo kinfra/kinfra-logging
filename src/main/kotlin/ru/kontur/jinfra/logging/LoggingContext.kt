@@ -1,18 +1,17 @@
 package ru.kontur.jinfra.logging
 
+import kotlinx.coroutines.ThreadContextElement
 import ru.kontur.jinfra.logging.LoggingContext.Element
 import ru.kontur.jinfra.logging.decor.MessageDecor
 import ru.kontur.jinfra.logging.impl.ContextElementSet
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 /**
  * Contains supplementary data that should be logged with every log message.
  *
  * Consists of an **ordered** set of [key-value pairs][Element] ([elements]).
  *
- * LoggingContext can be placed in [CoroutineContext] to propagate it inside entire call graph.
- * In that case you should use [Logger] that will use that context:
+ * LoggingContext can be placed in [CoroutineContext] to propagate it inside entire call graph of a coroutine:
  * ```
  * val logger: Logger = Logger.currentClass()
  * val userId = ...
@@ -22,37 +21,24 @@ import kotlin.coroutines.coroutineContext
  * }
  * ```
  *
- * Alternatively a LoggingContext [can be passed][Logger.withContext] to an instance of [ContextLogger]
- * in order to use it for all messages logged by the instance:
+ * The same can be done in a non-`suspend` function as well via [withLoggingContext] method:
  * ```
- * private val logger: Logger = Logger.currentClass()
- *
- * fun doSomething(..., logContext: LoggingContext) {
- *     val logger: ContextLogger = logger.withContext(logContext)
+ * val logger: Logger = Logger.currentClass()
+ * val userId = ...
+ * withLoggingContext("userId", userId) {
  *     logger.info { "Log message" }
  *     ...
  * }
  * ```
  *
- * These approaches can be combined: for example, a context can be captured in a suspending function
- * via [LoggingContext.current] and then used in a [ContextLogger] via [Logger.withContext].
+ * New elements can be added to the context via [LoggingContext.with].
  *
- * New elements can be added to the context via [LoggingContext.add] and [LoggingContext.with] (in a coroutine).
  * The context is immutable, adding new elements creates a new context.
  */
 sealed class LoggingContext : CoroutineContext.Element {
-    /*
-     * A note on public API:
-     * Beware that exposing a method returning a new LoggingContext
-     * can lead to its misuse in CoroutineScope.withContext().
-     * For example suppose there is a LoggingContext.of(key, value) method.
-     * A user may call it like this:
-     *
-     *   withContext(LoggingContext.of("key", "value")) { ... }
-     *
-     * This way current context will be lost (it will be replaced by the new context).
-     * So it's better to avoid having such API.
-     */
+
+    final override val key: CoroutineContext.Key<*>
+        get() = LoggingContext
 
     /**
      * Elements contained in this context.
@@ -64,18 +50,6 @@ sealed class LoggingContext : CoroutineContext.Element {
      * If no such element is found, returns `null`.
      */
     abstract operator fun get(key: String): String?
-
-    /**
-     * Returns a context composed of this context and an element with specified [key] and [value].
-     *
-     * This context must not contain an element with the same [key].
-     *
-     * @see ContextLogger.addContext
-     */
-    fun add(key: String, value: Any): LoggingContext {
-        val element = Element(key, value.toString())
-        return PopulatedContext(this, element)
-    }
 
     /**
      * Obtains a decor instance based on specified [empty] decor to render data of this context.
@@ -94,8 +68,15 @@ sealed class LoggingContext : CoroutineContext.Element {
      */
     abstract fun isEmpty(): Boolean
 
-    override val key: CoroutineContext.Key<*>
-        get() = LoggingContext
+    /**
+     * Returns a context composed of this context and an element with specified [key] and [value].
+     *
+     * This context must not contain an element with the same [key].
+     */
+    fun with(key: String, value: Any): LoggingContext {
+        val element = Element(key, value.toString())
+        return PopulatedContext(this, element)
+    }
 
     @Deprecated("Logging contexts cannot be merged", level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("other"))
     operator fun plus(other: LoggingContext): CoroutineContext {
@@ -124,11 +105,107 @@ sealed class LoggingContext : CoroutineContext.Element {
         override fun hashCode() = 31 * key.hashCode() + value.hashCode()
 
         override fun toString(): String {
-            return if (value.isNotEmpty()) {
-                "$key=$value"
-            } else {
-                key
+            return if (value.isNotEmpty()) "$key=$value" else key
+        }
+
+    }
+
+    private object EmptyContext : LoggingContext(), ThreadContextElement<LoggingContext> {
+        override fun get(key: String): String? = null
+        override fun getDecor(empty: MessageDecor) = empty
+        override val elements: Collection<Element> get() = emptyList()
+        override fun asMap(): Map<String, String> = emptyMap()
+        override fun isEmpty() = true
+        override fun updateThreadContext(context: CoroutineContext): LoggingContext {
+            return replaceContext(fromCoroutineContext(context))
+        }
+        override fun restoreThreadContext(context: CoroutineContext, oldState: LoggingContext) {
+            restoreContext(oldState)
+        }
+        override fun toString() = "(empty)"
+    }
+
+    internal class PopulatedContext internal constructor(
+        private val parent: LoggingContext,
+        private val element: Element
+    ) : LoggingContext(),
+        ThreadContextElement<LoggingContext> {
+
+        @Volatile
+        private var allElements: ContextElementSet? = null
+
+        @Volatile
+        private var cachedDecor: CachedDecor? = null
+
+        init {
+            val currentValue = parent[element.key]
+            require(currentValue == null) {
+                "Context already contains an element with key '$key'" +
+                    " (current value: '$currentValue', new value: '${element.value}')"
             }
+        }
+
+        override val elements: ContextElementSet
+            get() = allElements ?: createElementSet().also {
+                allElements = it
+            }
+
+        private fun createElementSet(): ContextElementSet {
+            return when (parent) {
+                is EmptyContext -> ContextElementSet(element)
+                is PopulatedContext -> ContextElementSet(parent.elements, element)
+            }
+        }
+
+        override fun get(key: String): String? {
+            return if (element.key == key) {
+                element.value
+            } else {
+                parent[key]
+            }
+        }
+
+        override fun getDecor(empty: MessageDecor): MessageDecor {
+            val cachedDecor = this.cachedDecor
+                ?.takeIf { it.empty == empty }
+
+            return cachedDecor?.filled ?: parent.getDecor(empty).plusElement(element).also {
+                this.cachedDecor = CachedDecor(it, empty)
+            }
+        }
+
+        override fun asMap(): Map<String, String> {
+            return elements.asMap
+        }
+
+        override fun isEmpty() = false
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is PopulatedContext) return false
+
+            return element == other.element && parent == other.parent
+        }
+
+        override fun hashCode(): Int {
+            return element.hashCode() + parent.hashCode()
+        }
+
+        override fun toString(): String {
+            return elements.toString()
+        }
+
+        private class CachedDecor(
+            val filled: MessageDecor,
+            val empty: MessageDecor
+        )
+
+        override fun updateThreadContext(context: CoroutineContext): LoggingContext {
+            return replaceContext(fromCoroutineContext(context))
+        }
+
+        override fun restoreThreadContext(context: CoroutineContext, oldState: LoggingContext) {
+            restoreContext(oldState)
         }
 
     }
@@ -138,13 +215,20 @@ sealed class LoggingContext : CoroutineContext.Element {
         /**
          * Empty context. This context has no elements.
          */
+        @JvmField
         val EMPTY: LoggingContext = EmptyContext
 
+        private val threadLocal = ThreadLocal<LoggingContext>()
+
         /**
-         * Returns [LoggingContext] of the calling coroutine.
+         * Returns [LoggingContext] of the current thread or coroutine.
          */
-        suspend inline fun current(): LoggingContext {
-            return fromCoroutineContext(coroutineContext)
+        fun current(): LoggingContext {
+            return threadLocal.get() ?: EMPTY
+        }
+
+        internal fun setCurrent(context: LoggingContext) {
+            threadLocal.set(context)
         }
 
         /**
@@ -155,107 +239,64 @@ sealed class LoggingContext : CoroutineContext.Element {
         }
 
         /**
-         * A shortcut for `LoggingContext.current().add(key, value)`
+         * A shortcut for `LoggingContext.current().with(key, value)`
          *
          * @see LoggingContext.current
-         * @see LoggingContext.add
+         * @see LoggingContext.with
          */
-        suspend inline fun with(key: String, value: Any): LoggingContext {
-            return current().add(key, value)
+        fun with(key: String, value: Any): LoggingContext {
+            return current().with(key, value)
         }
 
     }
 
 }
 
-private object EmptyContext : LoggingContext() {
-
-    override fun get(key: String): String? = null
-
-    override fun getDecor(empty: MessageDecor) = empty
-
-    override val elements: Collection<Element> get() = emptyList()
-
-    override fun asMap(): Map<String, String> = emptyMap()
-
-    override fun isEmpty() = true
-
-    override fun toString() = "(empty)"
-
+/**
+ * Run [block] of code in a logging context with an element with specified [key] and [value].
+ *
+ * In suspending code, use `withContext(LoggingContext.with(key,value)) { ... }` instead.
+ */
+// crossinline disallows suspending
+inline fun <R> withLoggingContext(key: String, value: Any, crossinline block: () -> R): R {
+    val oldContext = addContext(key, value)
+    return try {
+        block()
+    } finally {
+        restoreContext(oldContext)
+    }
 }
 
-private class PopulatedContext(
-    private val parent: LoggingContext,
-    private val element: Element
-) : LoggingContext() {
-
-    @Volatile
-    private var allElements: ContextElementSet? = null
-
-    @Volatile
-    private var cachedDecor: CachedDecor? = null
-
-    init {
-        val currentValue = parent[element.key]
-        require(currentValue == null) {
-            "Context already contains an element with key '$key'" +
-                    " (current value: '$currentValue', new value: '${element.value}')"
-        }
+/**
+ * Run [block] of code in specified logging [context].
+ *
+ * In suspending code, use `withContext(LoggingContext.with(key,value)) { ... }` instead.
+ */
+// crossinline disallows suspending
+inline fun <R> withLoggingContext(context: LoggingContext, crossinline block: () -> R): R {
+    val oldContext = replaceContext(context)
+    return try {
+        block()
+    } finally {
+        restoreContext(oldContext)
     }
+}
 
-    override val elements: ContextElementSet
-        get() = allElements ?: createElements().also {
-            allElements = it
-        }
-
-    private fun createElements(): ContextElementSet {
-        return when (parent) {
-            is EmptyContext -> ContextElementSet(element)
-            is PopulatedContext -> ContextElementSet(parent.elements, element)
-        }
+@PublishedApi
+internal fun addContext(key: String, value: Any): LoggingContext {
+    return LoggingContext.current().also {
+        LoggingContext.setCurrent(it.with(key, value))
     }
+}
 
-    override fun get(key: String): String? {
-        return if (element.key == key) {
-            element.value
-        } else {
-            parent[key]
-        }
+@PublishedApi
+internal fun replaceContext(newContext: LoggingContext): LoggingContext {
+    return LoggingContext.current().also {
+        LoggingContext.setCurrent(newContext)
     }
+}
 
-    override fun getDecor(empty: MessageDecor): MessageDecor {
-        val cachedDecor = this.cachedDecor
-            ?.takeIf { it.empty == empty }
-
-        return cachedDecor?.filled ?: parent.getDecor(empty).plusElement(element).also {
-            this.cachedDecor = CachedDecor(it, empty)
-        }
-    }
-
-    override fun asMap(): Map<String, String> {
-        return elements.asMap
-    }
-
-    override fun isEmpty() = false
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is PopulatedContext) return false
-
-        return element == other.element && parent == other.parent
-    }
-
-    override fun hashCode(): Int {
-        return element.hashCode() + parent.hashCode()
-    }
-
-    override fun toString(): String {
-        return elements.toString()
-    }
-
-    private class CachedDecor(
-        val filled: MessageDecor,
-        val empty: MessageDecor
-    )
-
+@PublishedApi
+internal fun restoreContext(oldContext: LoggingContext) {
+    LoggingContext.setCurrent(oldContext)
 }

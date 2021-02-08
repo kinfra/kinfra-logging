@@ -1,11 +1,10 @@
 package ru.kontur.jinfra.logging.test
 
 import ru.kontur.jinfra.logging.LogLevel
-import ru.kontur.jinfra.logging.backend.LoggerBackend
 import ru.kontur.jinfra.logging.LoggingContext
 import ru.kontur.jinfra.logging.backend.CallerInfo
+import ru.kontur.jinfra.logging.backend.LoggerBackend
 import ru.kontur.jinfra.logging.backend.LoggingRequest
-import kotlin.coroutines.CoroutineContext
 
 class MockBackend : LoggerBackend {
 
@@ -16,7 +15,7 @@ class MockBackend : LoggerBackend {
     val events: List<LoggingEvent>
         get() = this.recordedEvents
 
-    override fun isEnabled(level: LogLevel, context: CoroutineContext): Boolean {
+    override fun isEnabled(level: LogLevel, context: LoggingContext): Boolean {
         val currentLevel = this.level
         val loggingContext = LoggingContext.fromCoroutineContext(context)
 

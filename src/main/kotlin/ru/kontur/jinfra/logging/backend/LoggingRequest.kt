@@ -1,6 +1,8 @@
 package ru.kontur.jinfra.logging.backend
 
-import ru.kontur.jinfra.logging.*
+import ru.kontur.jinfra.logging.LogLevel
+import ru.kontur.jinfra.logging.Logger
+import ru.kontur.jinfra.logging.LoggingContext
 import ru.kontur.jinfra.logging.decor.MessageDecor
 
 /**

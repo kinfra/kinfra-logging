@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
@@ -24,7 +25,7 @@ class LoggingContextTests {
 
     @Test
     fun populated_is_not_empty() {
-        val context = LoggingContext.EMPTY.add("foo", "bar")
+        val context = LoggingContext.EMPTY.with("foo", "bar")
 
         val elements = context.elements.toList()
         assertFalse(context.isEmpty())
@@ -35,18 +36,57 @@ class LoggingContextTests {
 
     @Test
     fun current() {
-        val expected = LoggingContext.EMPTY.add("foo", "bar")
+        val empty = LoggingContext.EMPTY
+        val context = empty.with("foo", "bar")
 
-        val actual = runBlocking(expected) {
-            LoggingContext.current()
+        assertEquals(empty, LoggingContext.current())
+
+        withLoggingContext(context) {
+            assertEquals(context, LoggingContext.current())
         }
 
-        assertEquals(expected, actual)
+        assertEquals(empty, LoggingContext.current())
+    }
+
+    @Test
+    // todo: enable after release of kotlinx-coroutines 1.4.3
+    @Disabled("broken because of kotlinx.coroutines bug")
+    fun current_in_coroutine() {
+        val empty = LoggingContext.EMPTY
+        val context = empty.with("foo", "bar")
+
+        runBlocking {
+            // Should be empty by default
+            assertEquals(empty, LoggingContext.current())
+
+            // Run coroutine in the context
+            withContext(context) {
+                // In the same thread
+                assertEquals(context, LoggingContext.current())
+
+                withContext(Dispatchers.IO) {
+                    // In a thread of Dispatchers.IO pool
+                    assertEquals(context, LoggingContext.current())
+                }
+            }
+
+            // Should be empty outside withContext { }
+            assertEquals(empty, LoggingContext.current())
+        }
+    }
+
+    @Test
+    fun with_logging_key_value() {
+        withLoggingContext("key", "value") {
+            val element = LoggingContext.current().elements.single()
+            assertEquals("key", element.key)
+            assertEquals("value", element.value)
+        }
     }
 
     @Test
     fun from_coroutine_context() {
-        val expected = LoggingContext.EMPTY.add("foo", "bar")
+        val expected = LoggingContext.EMPTY.with("foo", "bar")
 
         val actual = runBlocking(expected + Dispatchers.Default) {
             LoggingContext.fromCoroutineContext(coroutineContext)
@@ -62,7 +102,7 @@ class LoggingContextTests {
 
     @Test
     fun with_element() {
-        val context = runBlocking(LoggingContext.EMPTY.add("foo", "bar")) {
+        val context = runBlocking(LoggingContext.EMPTY.with("foo", "bar")) {
             withContext(LoggingContext.with("bar", "baz")) {
                 LoggingContext.current()
             }
@@ -77,9 +117,9 @@ class LoggingContextTests {
     @Test
     fun get() {
         val context = LoggingContext.EMPTY
-            .add("foo", "123")
-            .add("bar", "456")
-            .add("baz", "789")
+            .with("foo", "123")
+            .with("bar", "456")
+            .with("baz", "789")
 
         assertEquals("123", context["foo"])
         assertEquals("456", context["bar"])
@@ -95,12 +135,12 @@ class LoggingContextTests {
     @Test
     fun equals_same_elements() {
         val context1 = LoggingContext.EMPTY
-            .add("foo", "123")
-            .add("bar", "456")
+            .with("foo", "123")
+            .with("bar", "456")
 
         val context2 = LoggingContext.EMPTY
-            .add("foo", "123")
-            .add("bar", "456")
+            .with("foo", "123")
+            .with("bar", "456")
 
         assertEquals(context1, context2)
         assertEquals(context1.hashCode(), context2.hashCode())
@@ -110,29 +150,29 @@ class LoggingContextTests {
     fun replace_prohibited() {
         assertThrows<IllegalArgumentException> {
             LoggingContext.EMPTY
-                .add("foo", "bar")
-                .add("foo", "baz")
+                .with("foo", "bar")
+                .with("foo", "baz")
         }
     }
 
     @Test
     fun empty_key_prohibited() {
         assertThrows<IllegalArgumentException> {
-            LoggingContext.EMPTY.add("", "foo")
+            LoggingContext.EMPTY.with("", "foo")
         }
     }
 
     @Test
     fun empty_value_allowed() {
-        val context = LoggingContext.EMPTY.add("foo", "")
+        val context = LoggingContext.EMPTY.with("foo", "")
         assertEquals("", context["foo"])
     }
 
     @Test
     fun decor_differently() {
         val context = LoggingContext.EMPTY
-            .add("foo", "123")
-            .add("bar", "456")
+            .with("foo", "123")
+            .with("bar", "456")
 
         val prefixed = context.decorate("message", KeyPrefixLoggerFactory)
         assertEquals("foo bar message", prefixed)
@@ -145,8 +185,8 @@ class LoggingContextTests {
     fun decor_differently_same_factory() {
         val factory = DelegatingLoggerFactory
         val context = LoggingContext.EMPTY
-            .add("foo", "123")
-            .add("bar", "456")
+            .with("foo", "123")
+            .with("bar", "456")
 
         factory.delegate = KeyPrefixLoggerFactory
         val prefixed = context.decorate("message", factory)
@@ -164,8 +204,8 @@ class LoggingContextTests {
     @Test
     fun as_map() {
         val context = LoggingContext.EMPTY
-            .add("foo", "123")
-            .add("bar", "456")
+            .with("foo", "123")
+            .with("bar", "456")
 
         val expected = mapOf(
             "bar" to "456",

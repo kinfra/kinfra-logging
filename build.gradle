@@ -10,7 +10,13 @@ ext {
     versions = [
             slf4j: '1.7.28',
             logback: '1.2.3',
-            coroutines: '1.3.0',
+            coroutines: '1.3.1',
+    ]
+
+    libs = [
+        slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}",
+        coroutinesCore: "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}",
+        logbackClassic: "ch.qos.logback:logback-classic:${versions.logback}",
     ]
 }
 
@@ -18,10 +24,10 @@ group = "ru.kontur.jinfra"
 version = "0.14"
 
 dependencies {
-    implementation "org.slf4j:slf4j-api:${versions.slf4j}"
+    implementation libs.slf4jApi
+    implementation libs.coroutinesCore
 
-    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
-    testRuntimeOnly "ch.qos.logback:logback-classic:${versions.logback}"
+    testRuntimeOnly libs.logbackClassic
 }
 
 jar {

@@ -2,11 +2,11 @@ package ru.kontur.jinfra.logging
 
 import org.junit.jupiter.api.Test
 
-private val topLevelLogger = Logger.currentClass().withoutContext()
+private val topLevelLogger = Logger.currentClass()
 
 class DefaultLoggerFactoryTests {
 
-    private val classLogger = Logger.currentClass().withoutContext()
+    private val classLogger = Logger.currentClass()
 
     @Test
     fun current_class_logger() {
@@ -25,8 +25,7 @@ class DefaultLoggerFactoryTests {
 
     companion object {
 
-        private val companionLogger = Logger.currentClass().withoutContext()
-            .addContext("test", "testValue")
+        private val companionLogger = Logger.currentClass()
 
     }
 
