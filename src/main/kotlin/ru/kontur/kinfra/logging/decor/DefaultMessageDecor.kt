@@ -12,7 +12,7 @@ import ru.kontur.kinfra.logging.LoggingContext
  *
  * Context elements with empty values are ignored.
  */
-internal class PrefixMessageDecor private constructor(
+internal class DefaultMessageDecor private constructor(
     private val prefix: String
 ) : MessageDecor {
 
@@ -24,7 +24,7 @@ internal class PrefixMessageDecor private constructor(
         val value = element.value
 
         return if (value.isNotEmpty()) {
-            PrefixMessageDecor("$prefix[$value] ")
+            DefaultMessageDecor("$prefix[$value] ")
         } else {
             this
         }
@@ -33,7 +33,7 @@ internal class PrefixMessageDecor private constructor(
     companion object {
 
         @JvmField
-        val EMPTY = PrefixMessageDecor("")
+        val EMPTY = DefaultMessageDecor("")
 
     }
 

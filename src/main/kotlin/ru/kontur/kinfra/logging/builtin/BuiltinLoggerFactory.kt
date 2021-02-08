@@ -4,14 +4,14 @@ import ru.kontur.kinfra.logging.LoggerFactory
 import ru.kontur.kinfra.logging.backend.LoggerBackend
 import ru.kontur.kinfra.logging.backend.slf4j.Slf4jBackend
 import ru.kontur.kinfra.logging.decor.MessageDecor
-import ru.kontur.kinfra.logging.decor.PrefixMessageDecor
+import ru.kontur.kinfra.logging.decor.DefaultMessageDecor
 import kotlin.reflect.KClass
 
 /**
  * Default logger factory that built into the library.
  *
  * For now, it uses SLF4J to access underlying logging system
- * and [PrefixMessageDecor] as message decor.
+ * and [DefaultMessageDecor] as message decor.
  */
 internal class BuiltinLoggerFactory : LoggerFactory() {
 
@@ -20,7 +20,7 @@ internal class BuiltinLoggerFactory : LoggerFactory() {
     }
 
     override fun getEmptyDecor(): MessageDecor {
-        return PrefixMessageDecor.EMPTY
+        return DefaultMessageDecor.EMPTY
     }
 
 }

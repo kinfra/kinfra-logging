@@ -180,6 +180,14 @@ sealed class LoggingContext : CoroutineContext.Element {
 
         override fun isEmpty() = false
 
+        override fun updateThreadContext(context: CoroutineContext): LoggingContext {
+            return replaceContext(fromCoroutineContext(context))
+        }
+
+        override fun restoreThreadContext(context: CoroutineContext, oldState: LoggingContext) {
+            restoreContext(oldState)
+        }
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is PopulatedContext) return false
@@ -199,14 +207,6 @@ sealed class LoggingContext : CoroutineContext.Element {
             val filled: MessageDecor,
             val empty: MessageDecor
         )
-
-        override fun updateThreadContext(context: CoroutineContext): LoggingContext {
-            return replaceContext(fromCoroutineContext(context))
-        }
-
-        override fun restoreThreadContext(context: CoroutineContext, oldState: LoggingContext) {
-            restoreContext(oldState)
-        }
 
     }
 
