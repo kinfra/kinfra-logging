@@ -28,6 +28,10 @@ dependencies {
     implementation libs.coroutinesCore
 
     testRuntimeOnly libs.logbackClassic
+
+    constraints {
+        runtimeOnly "ru.kontur.jinfra:jinfra-logging:0.15"
+    }
 }
 
 jar {
