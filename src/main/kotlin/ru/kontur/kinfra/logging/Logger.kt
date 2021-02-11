@@ -77,7 +77,6 @@ class Logger internal constructor(
         context: LoggingContext
     ) {
 
-        val loggingContext = LoggingContext.fromCoroutineContext(context)
         val additionalData = if (error == null) {
             LoggingAdditionalData.NONE
         } else {
@@ -89,8 +88,8 @@ class Logger internal constructor(
             level = level,
             message = message,
             additionalData = additionalData,
-            context = loggingContext,
-            decor = loggingContext.getDecor(factory.getEmptyDecorInternal()),
+            context = context,
+            decor = context.getDecor(factory.getEmptyDecorInternal()),
             caller = callerInfo
         )
 

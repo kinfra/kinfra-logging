@@ -117,7 +117,7 @@ sealed class LoggingContext : CoroutineContext.Element {
         override fun asMap(): Map<String, String> = emptyMap()
         override fun isEmpty() = true
         override fun updateThreadContext(context: CoroutineContext): LoggingContext {
-            return replaceContext(fromCoroutineContext(context))
+            return replaceContext(this)
         }
         override fun restoreThreadContext(context: CoroutineContext, oldState: LoggingContext) {
             restoreContext(oldState)
@@ -181,7 +181,7 @@ sealed class LoggingContext : CoroutineContext.Element {
         override fun isEmpty() = false
 
         override fun updateThreadContext(context: CoroutineContext): LoggingContext {
-            return replaceContext(fromCoroutineContext(context))
+            return replaceContext(this)
         }
 
         override fun restoreThreadContext(context: CoroutineContext, oldState: LoggingContext) {
@@ -229,13 +229,6 @@ sealed class LoggingContext : CoroutineContext.Element {
 
         internal fun setCurrent(context: LoggingContext) {
             threadLocal.set(context)
-        }
-
-        /**
-         * Returns [LoggingContext] contained in a [CoroutineContext] or [EMPTY] if there is not one.
-         */
-        fun fromCoroutineContext(context: CoroutineContext): LoggingContext {
-            return context[LoggingContext] ?: EMPTY
         }
 
         /**

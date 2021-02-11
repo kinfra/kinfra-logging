@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
 import ru.kontur.kinfra.logging.decor.MessageDecor
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.properties.Delegates
 import kotlin.reflect.KClass
 
@@ -35,23 +34,33 @@ class LoggingContextTests {
     }
 
     @Test
-    fun current() {
+    fun with_logging_context() {
         val empty = LoggingContext.EMPTY
-        val context = empty.with("foo", "bar")
+        val sample = empty.with("foo", "bar")
 
         assertEquals(empty, LoggingContext.current())
-
-        withLoggingContext(context) {
-            assertEquals(context, LoggingContext.current())
+        withLoggingContext(sample) {
+            assertEquals(sample, LoggingContext.current())
         }
+        assertEquals(empty, LoggingContext.current())
+    }
 
+    @Test
+    fun with_logging_context_key_value() {
+        val empty = LoggingContext.EMPTY
+        val expected = empty.with("key", "value")
+
+        assertEquals(empty, LoggingContext.current())
+        withLoggingContext("key", "value") {
+            assertEquals(expected, LoggingContext.current())
+        }
         assertEquals(empty, LoggingContext.current())
     }
 
     @Test
     // todo: enable after release of kotlinx-coroutines 1.4.3
     @Disabled("broken because of kotlinx.coroutines bug")
-    fun current_in_coroutine() {
+    fun with_coroutine_context() {
         val empty = LoggingContext.EMPTY
         val context = empty.with("foo", "bar")
 
@@ -68,6 +77,9 @@ class LoggingContextTests {
                     // In a thread of Dispatchers.IO pool
                     assertEquals(context, LoggingContext.current())
                 }
+
+                // In the main thread again
+                assertEquals(context, LoggingContext.current())
             }
 
             // Should be empty outside withContext { }
@@ -76,42 +88,56 @@ class LoggingContextTests {
     }
 
     @Test
-    fun with_logging_key_value() {
-        withLoggingContext("key", "value") {
-            val element = LoggingContext.current().elements.single()
-            assertEquals("key", element.key)
-            assertEquals("value", element.value)
-        }
-    }
-
-    @Test
-    fun from_coroutine_context() {
-        val expected = LoggingContext.EMPTY.with("foo", "bar")
-
-        val actual = runBlocking(expected + Dispatchers.Default) {
-            LoggingContext.fromCoroutineContext(coroutineContext)
+    fun with_context_combined() {
+        lateinit var outerContextBefore: LoggingContext
+        lateinit var outerContextAfter: LoggingContext
+        lateinit var innerContext: LoggingContext
+        runBlocking(LoggingContext.with("foo", "123")) {
+            outerContextBefore = LoggingContext.current()
+            withContext(LoggingContext.with("bar", "456")) {
+                innerContext = LoggingContext.current()
+            }
+            outerContextAfter = LoggingContext.current()
         }
 
-        assertEquals(expected, actual)
+        val expectedOuter = LoggingContext.EMPTY.with("foo", "123")
+        val expectedInner = expectedOuter.with("bar", "456")
+        assertAll(
+            { assertEquals(expectedOuter, outerContextBefore) },
+            { assertEquals(expectedInner, innerContext) },
+            { assertEquals(expectedOuter, outerContextAfter) },
+        )
     }
 
     @Test
-    fun from_coroutine_context_empty() {
-        assertEquals(LoggingContext.EMPTY, LoggingContext.fromCoroutineContext(EmptyCoroutineContext))
-    }
-
-    @Test
-    fun with_element() {
-        val context = runBlocking(LoggingContext.EMPTY.with("foo", "bar")) {
-            withContext(LoggingContext.with("bar", "baz")) {
-                LoggingContext.current()
+    fun with_context_run_blocking() {
+        withLoggingContext("foo", "123") {
+            runBlocking {
+                val context = LoggingContext.current()
+                val expected = LoggingContext.EMPTY.with("foo", "123")
+                assertEquals(expected, context)
             }
         }
+    }
 
-        val elements = context.elements.toList()
-        assertEquals(2, elements.size)
-        assertEquals("foo", elements[0].key)
-        assertEquals("bar", elements[1].key)
+    @Test
+    fun with_context_run_blocking_another_thread() {
+        withLoggingContext("foo", "123") {
+            runBlocking(Dispatchers.IO) {
+                assertEquals(LoggingContext.EMPTY, LoggingContext.current())
+            }
+        }
+    }
+
+    @Test
+    fun with_context_run_blocking_passed_explicitly() {
+        withLoggingContext("foo", "123") {
+            runBlocking(Dispatchers.IO + LoggingContext.current()) {
+                val context = LoggingContext.current()
+                val expected = LoggingContext.EMPTY.with("foo", "123")
+                assertEquals(expected, context)
+            }
+        }
     }
 
     @Test
@@ -144,6 +170,19 @@ class LoggingContextTests {
 
         assertEquals(context1, context2)
         assertEquals(context1.hashCode(), context2.hashCode())
+    }
+
+    @Test
+    fun equals_check_order() {
+        val context1 = LoggingContext.EMPTY
+            .with("foo", "123")
+            .with("bar", "456")
+
+        val context2 = LoggingContext.EMPTY
+            .with("bar", "456")
+            .with("foo", "123")
+
+        assertNotEquals(context1, context2)
     }
 
     @Test
@@ -207,6 +246,7 @@ class LoggingContextTests {
             .with("foo", "123")
             .with("bar", "456")
 
+        // reverse order is intended
         val expected = mapOf(
             "bar" to "456",
             "foo" to "123"
@@ -219,6 +259,8 @@ class LoggingContextTests {
         assertFalse(map.containsKey("baz"))
         assertTrue(map.containsValue("456"))
         assertFalse(map.containsValue("000"))
+        assertEquals("123", map["foo"])
+        assertEquals("456", map["bar"])
     }
 
     private object DelegatingLoggerFactory : LoggerFactory.Wrapper() {
