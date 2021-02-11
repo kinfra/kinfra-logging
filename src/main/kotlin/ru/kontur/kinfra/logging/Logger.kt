@@ -54,17 +54,16 @@ class Logger internal constructor(
      */
     // crossinline disallows non-local returns in the lambda
     inline fun log(level: LogLevel, error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
-        val context = LoggingContext.current()
-        if (isEnabled(level, context)) {
+        if (isEnabled(level)) {
             val messageBuilder = MessageBuilder.STUB
             val message = lazyMessage.invoke(messageBuilder)
-            log(level, message, messageBuilder, error, context)
+            log(level, message, messageBuilder, error)
         }
     }
 
     @PublishedApi
-    internal fun isEnabled(level: LogLevel, context: LoggingContext): Boolean {
-        return backend.isEnabled(level, context)
+    internal fun isEnabled(level: LogLevel): Boolean {
+        return backend.isEnabled(level)
     }
 
     @PublishedApi
@@ -74,7 +73,6 @@ class Logger internal constructor(
         @Suppress("UNUSED_PARAMETER")
         messageBuilder: MessageBuilder,
         error: Throwable?,
-        context: LoggingContext
     ) {
 
         val additionalData = if (error == null) {
@@ -84,6 +82,7 @@ class Logger internal constructor(
                 throwable = error
             )
         }
+        val context = LoggingContext.current()
         val request = LoggingRequest(
             level = level,
             message = message,

@@ -15,11 +15,13 @@ import ru.kontur.kinfra.logging.LoggingContext
 interface LoggerBackend {
 
     /**
-     * Determines if a message with a given [level] in a given [context] should be logged.
+     * Determines if a message with a given [level] should be logged.
      *
      * If the returned value is `false`, logger will not evaluate the message and call [log] method.
+     *
+     * Implementation may use [LoggingContext.current] to make a decision.
      */
-    fun isEnabled(level: LogLevel, context: LoggingContext): Boolean
+    fun isEnabled(level: LogLevel): Boolean
 
     /**
      * Log a message.
@@ -36,7 +38,7 @@ interface LoggerBackend {
         /**
          * Returns `false`.
          */
-        override fun isEnabled(level: LogLevel, context: LoggingContext) = false
+        override fun isEnabled(level: LogLevel) = false
 
         /**
          * Does nothing.
