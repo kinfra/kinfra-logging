@@ -97,6 +97,6 @@ private tailrec fun getTopLevelClass(clazz: Class<*>): Class<*> {
     return if (enclosing == null) {
         clazz
     } else {
-        getTopLevelClass(clazz)
+        getTopLevelClass(enclosing)
     }
 }
