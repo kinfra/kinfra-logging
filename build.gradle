@@ -4,6 +4,7 @@ plugins {
     id 'jacoco'
     id 'org.jetbrains.kotlin.jvm' version '1.4.21'
     id 'ru.kontur.kinfra.presets' version '1.4'
+    id 'me.champeau.gradle.jmh' version '0.5.3'
 }
 
 ext {
@@ -16,18 +17,24 @@ ext {
     libs = [
         slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}",
         coroutinesCore: "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}",
+        coroutinesSlf4j: "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:${versions.coroutines}",
         logbackClassic: "ch.qos.logback:logback-classic:${versions.logback}",
     ]
 }
 
 group = "ru.kontur.kinfra"
-version = "0.1"
+version = "0.2"
 
 dependencies {
     implementation libs.slf4jApi
     implementation libs.coroutinesCore
 
     testRuntimeOnly libs.logbackClassic
+
+    jmh "org.openjdk.jmh:jmh-core:1.25"
+    jmh "org.openjdk.jmh:jmh-generator-annprocess:1.25"
+    jmh libs.coroutinesSlf4j
+    jmh libs.logbackClassic
 
     constraints {
         runtimeOnly "ru.kontur.jinfra:jinfra-logging:0.15"
@@ -53,4 +60,22 @@ publishing {
             }
         }
     }
+}
+
+jmh {
+    include = ["benchmarks.SimpleLogging.*"]
+    benchmarkMode = ["avgt"]
+    batchSize = 100_000
+    iterations = 10
+    timeOnIteration = '1s'
+    warmupBatchSize = 100_000
+    warmupIterations = 5
+    warmup = "1s"
+
+    timeUnit = 'ms'
+    fork = 1
+    forceGC = true
+
+    // don't include logback.xml from tests
+    includeTests = false
 }

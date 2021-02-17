@@ -23,6 +23,17 @@ class DefaultLoggerFactoryTests {
         topLevelLogger.info { "Top level logger message" }
     }
 
+    @Test
+    fun nested_object_logger() {
+        Foo.Bar.logger.info { "Nested object logger message" }
+    }
+
+    object Foo {
+        object Bar {
+            val logger = Logger.currentClass()
+        }
+    }
+
     companion object {
 
         private val companionLogger = Logger.currentClass()

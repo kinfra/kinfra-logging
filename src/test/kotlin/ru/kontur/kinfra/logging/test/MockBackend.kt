@@ -15,11 +15,10 @@ class MockBackend : LoggerBackend {
     val events: List<LoggingEvent>
         get() = this.recordedEvents
 
-    override fun isEnabled(level: LogLevel, context: LoggingContext): Boolean {
+    override fun isEnabled(level: LogLevel): Boolean {
         val currentLevel = this.level
-        val loggingContext = LoggingContext.fromCoroutineContext(context)
-
-        return currentLevel != null && currentLevel <= level && loggingContext["ignore"] != "true"
+        val context = LoggingContext.current()
+        return currentLevel != null && currentLevel <= level && context["ignore"] != "true"
     }
 
     override fun log(request: LoggingRequest) {
