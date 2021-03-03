@@ -58,8 +58,6 @@ class LoggingContextTests {
     }
 
     @Test
-    // todo: enable after release of kotlinx-coroutines 1.4.3
-    @Disabled("broken because of kotlinx.coroutines bug")
     fun with_coroutine_context() {
         val empty = LoggingContext.EMPTY
         val context = empty.with("foo", "bar")
