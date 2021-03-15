@@ -15,8 +15,8 @@ import kotlin.reflect.KClass
  */
 internal class BuiltinLoggerFactory : LoggerFactory() {
 
-    override fun getLoggerBackend(kClass: KClass<*>): LoggerBackend {
-        return Slf4jBackend.forClass(kClass)
+    override fun getLoggerBackend(name: String): LoggerBackend {
+        return Slf4jBackend.forName(name)
     }
 
     override fun getEmptyDecor(): MessageDecor {

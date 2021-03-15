@@ -4,13 +4,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
+import ru.kontur.kinfra.logging.backend.LoggerBackend
 import ru.kontur.kinfra.logging.decor.MessageDecor
 import kotlin.properties.Delegates
-import kotlin.reflect.KClass
 
 class LoggingContextTests {
 
@@ -271,7 +270,7 @@ class LoggingContextTests {
             return Decor("")
         }
 
-        override fun getLoggerBackend(kClass: KClass<*>) = fail { "should not be called" }
+        override fun getLoggerBackend(name: String): LoggerBackend = fail { "should not be called" }
 
         private class Decor(val value: String) : MessageDecor {
             override fun decorate(message: String): String {
@@ -291,7 +290,7 @@ class LoggingContextTests {
             return Decor("")
         }
 
-        override fun getLoggerBackend(kClass: KClass<*>) = fail { "should not be called" }
+        override fun getLoggerBackend(name: String): LoggerBackend = fail { "should not be called" }
 
         private class Decor(val value: String) : MessageDecor {
             override fun decorate(message: String): String {

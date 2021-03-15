@@ -102,8 +102,8 @@ internal abstract class Slf4jBackend private constructor() : LoggerBackend {
 
     companion object {
 
-        fun forClass(kClass: KClass<*>): LoggerBackend {
-            val slf4jLogger: Logger = org.slf4j.LoggerFactory.getLogger(kClass.java)
+        fun forName(name: String): LoggerBackend {
+            val slf4jLogger: Logger = org.slf4j.LoggerFactory.getLogger(name)
 
             return if (slf4jLogger is LocationAwareLogger) {
                 LocationAware(slf4jLogger)

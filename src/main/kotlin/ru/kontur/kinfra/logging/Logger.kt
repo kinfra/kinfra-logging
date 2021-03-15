@@ -17,8 +17,8 @@ import kotlin.reflect.KClass
  *
  *  * [Logger.forClass] obtains a logger for use in specified class.
  *
- * @see Logger.currentClass
- * @see Logger.forClass
+ *  * [Logger.forName] obtains a logger with arbitrary name.
+ *    Use when none of the above is appropriate.
  */
 class Logger internal constructor(
     private val backend: LoggerBackend,
@@ -118,6 +118,13 @@ class Logger internal constructor(
          */
         fun forClass(kClass: KClass<*>): Logger {
             return DefaultLoggerFactory.getLogger(kClass)
+        }
+
+        /**
+         * Obtains a [Logger] instance with a given [name] using default [LoggerFactory].
+         */
+        fun forName(name: String): Logger {
+            return DefaultLoggerFactory.getLogger(name)
         }
 
         /**
