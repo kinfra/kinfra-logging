@@ -12,7 +12,7 @@ import ru.kontur.kinfra.logging.LoggingContext
  *
  * Context elements with empty values are ignored.
  */
-internal class DefaultMessageDecor private constructor(
+class DefaultMessageDecor private constructor(
     private val prefix: String
 ) : MessageDecor {
 
