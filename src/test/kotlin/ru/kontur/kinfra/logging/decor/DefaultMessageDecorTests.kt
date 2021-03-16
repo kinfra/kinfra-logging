@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import ru.kontur.kinfra.logging.LoggingContext
 
-class PrefixMessageDecorTests {
+class DefaultMessageDecorTests {
 
     @Test
     fun empty_is_empty() {

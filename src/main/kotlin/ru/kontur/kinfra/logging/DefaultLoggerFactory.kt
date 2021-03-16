@@ -10,6 +10,6 @@ object DefaultLoggerFactory : LoggerFactory.Wrapper() {
     /**
      * Actual factory in use.
      */
-    public override val delegate: LoggerFactory = BuiltinLoggerFactory()
+    public override var delegate: LoggerFactory = BuiltinLoggerFactory()
 
 }

@@ -28,21 +28,35 @@ import kotlin.reflect.KClass
 abstract class LoggerFactory {
 
     /**
-     * Obtains [Logger] instance to use in specified [class][kClass].
+     * Obtains a [Logger] with a given [name].
+     *
+     * The name is usually a fully qualified name of some class.
      *
      * This method is thread safe. Calls [getLoggerBackend] internally.
      */
-    open fun getLogger(kClass: KClass<*>): Logger {
-        val backend = getLoggerBackend(kClass)
+    open fun getLogger(name: String): Logger {
+        val backend = getLoggerBackend(name)
         return Logger(backend, this)
     }
 
     /**
-     * Provides [LoggerBackend] for a logger to use in specified [class][kClass].
+     * Obtains [Logger] instance to use in specified [class][kClass].
+     *
+     * This method is thread safe. Calls [getLoggerBackend] internally.
+     */
+    fun getLogger(kClass: KClass<*>): Logger {
+        val name = requireNotNull(kClass.qualifiedName) {
+            "Class $kClass does not have a fully qualified name"
+        }
+        return getLogger(name)
+    }
+
+    /**
+     * Provides [LoggerBackend] for a logger with a given [name].
      *
      * This method must be thread-safe.
      */
-    protected abstract fun getLoggerBackend(kClass: KClass<*>): LoggerBackend
+    protected abstract fun getLoggerBackend(name: String): LoggerBackend
 
     /**
      * Provides an instance of initial (empty) [MessageDecor].
@@ -63,7 +77,7 @@ abstract class LoggerFactory {
 
         protected abstract val delegate: LoggerFactory
 
-        override fun getLoggerBackend(kClass: KClass<*>) = delegate.getLoggerBackend(kClass)
+        override fun getLoggerBackend(name: String): LoggerBackend = delegate.getLoggerBackend(name)
 
         override fun getEmptyDecor() = delegate.getEmptyDecor()
 
