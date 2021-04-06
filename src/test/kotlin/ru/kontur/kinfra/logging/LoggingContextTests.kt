@@ -260,6 +260,15 @@ class LoggingContextTests {
         assertEquals("456", map["bar"])
     }
 
+    @Test
+    fun withLoggingContext_has_callsInPlace_contract() {
+        val foo: String
+        withLoggingContext("key", "value") {
+            foo = "bar"
+        }
+        assertEquals("bar", foo)
+    }
+
     private object DelegatingLoggerFactory : LoggerFactory.Wrapper() {
         public override var delegate: LoggerFactory by Delegates.notNull()
     }

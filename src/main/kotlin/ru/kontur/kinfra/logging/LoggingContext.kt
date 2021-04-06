@@ -1,9 +1,14 @@
+@file:OptIn(ExperimentalContracts::class)
+
 package ru.kontur.kinfra.logging
 
 import kotlinx.coroutines.ThreadContextElement
 import ru.kontur.kinfra.logging.LoggingContext.Element
 import ru.kontur.kinfra.logging.decor.MessageDecor
 import ru.kontur.kinfra.logging.impl.ContextElementSet
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -252,6 +257,10 @@ sealed class LoggingContext : CoroutineContext.Element {
  */
 // crossinline disallows suspending
 inline fun <R> withLoggingContext(key: String, value: Any, crossinline block: () -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     val oldContext = addContext(key, value)
     return try {
         block()
@@ -267,6 +276,10 @@ inline fun <R> withLoggingContext(key: String, value: Any, crossinline block: ()
  */
 // crossinline disallows suspending
 inline fun <R> withLoggingContext(context: LoggingContext, crossinline block: () -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     val oldContext = replaceContext(context)
     return try {
         block()

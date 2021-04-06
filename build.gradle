@@ -41,6 +41,10 @@ dependencies {
     }
 }
 
+tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile) {
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+}
+
 jar {
     manifest.attributes "Automatic-Module-Name": "ru.kontur.kinfra.logging"
 }
