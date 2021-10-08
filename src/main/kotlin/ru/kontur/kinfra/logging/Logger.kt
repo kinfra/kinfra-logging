@@ -20,28 +20,28 @@ import kotlin.reflect.KClass
  *  * [Logger.forName] obtains a logger with arbitrary name.
  *    Use when none of the above is appropriate.
  */
-class Logger internal constructor(
+public class Logger internal constructor(
     private val backend: LoggerBackend,
     private val factory: LoggerFactory
 ) {
 
     /** [Log][log] a message with [DEBUG][LogLevel.DEBUG] level. */
-    inline fun debug(error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
+    public inline fun debug(error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.DEBUG, error, lazyMessage)
     }
 
     /** [Log][log] a message with [INFO][LogLevel.INFO] level. */
-    inline fun info(error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
+    public inline fun info(error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.INFO, error, lazyMessage)
     }
 
     /** [Log][log] a message with [WARN][LogLevel.WARN] level. */
-    inline fun warn(error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
+    public inline fun warn(error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.WARN, error, lazyMessage)
     }
 
     /** [Log][log] a message with [ERROR][LogLevel.ERROR] level. */
-    inline fun error(error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
+    public inline fun error(error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
         log(LogLevel.ERROR, error, lazyMessage)
     }
 
@@ -52,8 +52,13 @@ class Logger internal constructor(
      *
      * @param error a [Throwable] that should be logged with the message
      */
-    // crossinline disallows non-local returns in the lambda
-    inline fun log(level: LogLevel, error: Throwable? = null, crossinline lazyMessage: MessageBuilder.() -> String) {
+    public inline fun log(
+        level: LogLevel,
+        error: Throwable? = null,
+        // crossinline disallows non-local returns in the lambda
+        crossinline lazyMessage: MessageBuilder.() -> String
+    ) {
+
         if (isEnabled(level)) {
             val messageBuilder = MessageBuilder.STUB
             val message = lazyMessage.invoke(messageBuilder)
@@ -99,7 +104,7 @@ class Logger internal constructor(
         return "Logger(backend: $backend)"
     }
 
-    companion object {
+    public companion object {
 
         private val callerInfo = CallerInfo(facadeClassName = Logger::class.java.name)
 
@@ -116,14 +121,14 @@ class Logger internal constructor(
          *
          * Note that [Logger.currentClass] would return a logger for `BaseClass`.
          */
-        fun forClass(kClass: KClass<*>): Logger {
+        public fun forClass(kClass: KClass<*>): Logger {
             return DefaultLoggerFactory.getLogger(kClass)
         }
 
         /**
          * Obtains a [Logger] instance with a given [name] using default [LoggerFactory].
          */
-        fun forName(name: String): Logger {
+        public fun forName(name: String): Logger {
             return DefaultLoggerFactory.getLogger(name)
         }
 
@@ -156,7 +161,7 @@ class Logger internal constructor(
          * ```
          */
         @Suppress("NOTHING_TO_INLINE")
-        inline fun currentClass(): Logger {
+        public inline fun currentClass(): Logger {
             return DefaultLoggerFactory.currentClassLogger()
         }
 

@@ -9,19 +9,19 @@ import ru.kontur.kinfra.logging.backend.LoggingRequest
  *
  * Note that it does not survive serialization.
  */
-class LoggingRequestMarker private constructor(
-    val request: LoggingRequest,
+public class LoggingRequestMarker private constructor(
+    public val request: LoggingRequest,
     private val delegate: Marker
 ) : Marker by delegate {
 
-    constructor(request: LoggingRequest) : this(request, MarkerFactory.getDetachedMarker(NAME))
+    public constructor(request: LoggingRequest) : this(request, MarkerFactory.getDetachedMarker(NAME))
 
     // Serialize a plain marker without non-serializable LoggingRequest
     private fun writeReplace(): Any = delegate
 
-    companion object {
+    public companion object {
 
-        const val NAME = "LoggingRequest"
+        public const val NAME: String = "LoggingRequest"
 
     }
 

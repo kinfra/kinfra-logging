@@ -15,19 +15,19 @@ import ru.kontur.kinfra.logging.decor.MessageDecor
  * @property decor a decor containing context data
  * @property caller information about caller for location aware logging
  */
-class LoggingRequest(
-    val level: LogLevel,
-    val message: String,
-    val additionalData: LoggingAdditionalData,
-    val context: LoggingContext,
-    val decor: MessageDecor,
-    val caller: CallerInfo
+public class LoggingRequest(
+    public val level: LogLevel,
+    public val message: String,
+    public val additionalData: LoggingAdditionalData,
+    public val context: LoggingContext,
+    public val decor: MessageDecor,
+    public val caller: CallerInfo
 ) {
 
     /**
      * The [message] decorated with [decor].
      */
-    val decoratedMessage: String
+    public val decoratedMessage: String
         get() = decor.decorate(message)
 
     override fun toString(): String {

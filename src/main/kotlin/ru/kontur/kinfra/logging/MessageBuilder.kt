@@ -5,7 +5,7 @@ package ru.kontur.kinfra.logging
  *
  * It is a future extension point without any functionality for now.
  */
-abstract class MessageBuilder private constructor() {
+public abstract class MessageBuilder private constructor() {
     /*
      * Implementation considerations:
      * Beware that adding ANY public members to this class
@@ -15,7 +15,7 @@ abstract class MessageBuilder private constructor() {
 
     private class StubImpl : MessageBuilder()
 
-    companion object {
+    public companion object {
 
         @PublishedApi
         @JvmField

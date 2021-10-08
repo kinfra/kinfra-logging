@@ -1,9 +1,15 @@
+@file:OptIn(ExperimentalContracts::class)
+
 package ru.kontur.kinfra.logging
 
 import kotlinx.coroutines.ThreadContextElement
 import ru.kontur.kinfra.logging.LoggingContext.Element
 import ru.kontur.kinfra.logging.decor.MessageDecor
 import ru.kontur.kinfra.logging.impl.ContextElementSet
+import java.util.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -35,7 +41,7 @@ import kotlin.coroutines.CoroutineContext
  *
  * The context is immutable, adding new elements creates a new context.
  */
-sealed class LoggingContext : CoroutineContext.Element {
+public sealed class LoggingContext : CoroutineContext.Element {
 
     final override val key: CoroutineContext.Key<*>
         get() = LoggingContext
@@ -43,13 +49,13 @@ sealed class LoggingContext : CoroutineContext.Element {
     /**
      * Elements contained in this context.
      */
-    abstract val elements: Collection<Element>
+    public abstract val elements: Collection<Element>
 
     /**
      * Returns [value][Element.value] of the context element having specified key.
      * If no such element is found, returns `null`.
      */
-    abstract operator fun get(key: String): String?
+    public abstract operator fun get(key: String): String?
 
     /**
      * Obtains a decor instance based on specified [empty] decor to render data of this context.
@@ -61,25 +67,25 @@ sealed class LoggingContext : CoroutineContext.Element {
      *
      * Iteration order of the map is the same as in [elements].
      */
-    abstract fun asMap(): Map<String, String>
+    public abstract fun asMap(): Map<String, String>
 
     /**
      * Returns `true` if the context is empty (contains no elements), `false` otherwise.
      */
-    abstract fun isEmpty(): Boolean
+    public abstract fun isEmpty(): Boolean
 
     /**
      * Returns a context composed of this context and an element with specified [key] and [value].
      *
      * This context must not contain an element with the same [key].
      */
-    fun with(key: String, value: Any): LoggingContext {
+    public fun with(key: String, value: Any): LoggingContext {
         val element = Element(key, value.toString())
         return PopulatedContext(this, element)
     }
 
     @Deprecated("Logging contexts cannot be merged", level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("other"))
-    operator fun plus(other: LoggingContext): CoroutineContext {
+    public operator fun plus(other: LoggingContext): CoroutineContext {
         return other
     }
 
@@ -87,7 +93,7 @@ sealed class LoggingContext : CoroutineContext.Element {
      * A key-value pair that represents an aspect of context in which some code is executed.
      * For example, identifier of a user, operation or request.
      */
-    class Element(
+    public class Element(
         override val key: String,
         override val value: String
     ) : Map.Entry<String, String> {
@@ -102,7 +108,7 @@ sealed class LoggingContext : CoroutineContext.Element {
             return key == other.key && value == other.value
         }
 
-        override fun hashCode() = 31 * key.hashCode() + value.hashCode()
+        override fun hashCode(): Int = Objects.hash(key, value)
 
         override fun toString(): String {
             return if (value.isNotEmpty()) "$key=$value" else key
@@ -140,7 +146,7 @@ sealed class LoggingContext : CoroutineContext.Element {
         init {
             val currentValue = parent[element.key]
             require(currentValue == null) {
-                "Context already contains an element with key '$key'" +
+                "Context already contains an element with key '${element.key}'" +
                     " (current value: '$currentValue', new value: '${element.value}')"
             }
         }
@@ -196,7 +202,7 @@ sealed class LoggingContext : CoroutineContext.Element {
         }
 
         override fun hashCode(): Int {
-            return element.hashCode() + parent.hashCode()
+            return Objects.hash(element, parent)
         }
 
         override fun toString(): String {
@@ -210,20 +216,20 @@ sealed class LoggingContext : CoroutineContext.Element {
 
     }
 
-    companion object : CoroutineContext.Key<LoggingContext> {
+    public companion object : CoroutineContext.Key<LoggingContext> {
 
         /**
          * Empty context. This context has no elements.
          */
         @JvmField
-        val EMPTY: LoggingContext = EmptyContext
+        public val EMPTY: LoggingContext = EmptyContext
 
         private val threadLocal = ThreadLocal<LoggingContext>()
 
         /**
          * Returns [LoggingContext] of the current thread or coroutine.
          */
-        fun current(): LoggingContext {
+        public fun current(): LoggingContext {
             return threadLocal.get() ?: EMPTY
         }
 
@@ -237,7 +243,7 @@ sealed class LoggingContext : CoroutineContext.Element {
          * @see LoggingContext.current
          * @see LoggingContext.with
          */
-        fun with(key: String, value: Any): LoggingContext {
+        public fun with(key: String, value: Any): LoggingContext {
             return current().with(key, value)
         }
 
@@ -251,7 +257,11 @@ sealed class LoggingContext : CoroutineContext.Element {
  * In suspending code, use `withContext(LoggingContext.with(key,value)) { ... }` instead.
  */
 // crossinline disallows suspending
-inline fun <R> withLoggingContext(key: String, value: Any, crossinline block: () -> R): R {
+public inline fun <R> withLoggingContext(key: String, value: Any, crossinline block: () -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     val oldContext = addContext(key, value)
     return try {
         block()
@@ -266,7 +276,11 @@ inline fun <R> withLoggingContext(key: String, value: Any, crossinline block: ()
  * In suspending code, use `withContext(LoggingContext.with(key,value)) { ... }` instead.
  */
 // crossinline disallows suspending
-inline fun <R> withLoggingContext(context: LoggingContext, crossinline block: () -> R): R {
+public inline fun <R> withLoggingContext(context: LoggingContext, crossinline block: () -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     val oldContext = replaceContext(context)
     return try {
         block()

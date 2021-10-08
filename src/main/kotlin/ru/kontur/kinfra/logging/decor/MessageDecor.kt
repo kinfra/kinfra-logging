@@ -10,26 +10,26 @@ import ru.kontur.kinfra.logging.LoggingContext
  *
  * Implementation must be immutable.
  */
-interface MessageDecor {
+public interface MessageDecor {
 
     /**
      * Decorate the [message].
      */
-    fun decorate(message: String): String
+    public fun decorate(message: String): String
 
     /**
      * Add an element to this decor.
      */
-    fun plusElement(element: LoggingContext.Element): MessageDecor
+    public fun plusElement(element: LoggingContext.Element): MessageDecor
 
     /**
      * A [MessageDecor] that does not decorate messages in any way.
      */
-    object Nop : MessageDecor {
+    public object Nop : MessageDecor {
 
-        override fun decorate(message: String) = message
+        override fun decorate(message: String): String = message
 
-        override fun plusElement(element: LoggingContext.Element) = this
+        override fun plusElement(element: LoggingContext.Element): Nop = this
 
     }
 

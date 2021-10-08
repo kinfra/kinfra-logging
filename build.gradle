@@ -2,8 +2,8 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'jacoco'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
-    id 'ru.kontur.kinfra.presets' version '1.4'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
+    id 'ru.kontur.kinfra.presets' version '1.5'
     id 'me.champeau.gradle.jmh' version '0.5.3'
 }
 
@@ -23,7 +23,7 @@ ext {
 }
 
 group = "ru.kontur.kinfra"
-version = "0.3"
+version = "1.0"
 
 dependencies {
     implementation libs.slf4jApi
@@ -39,6 +39,14 @@ dependencies {
     constraints {
         runtimeOnly "ru.kontur.jinfra:jinfra-logging:0.15"
     }
+}
+
+kotlin {
+    explicitApi()
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile) {
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
 }
 
 jar {
