@@ -3,9 +3,8 @@ package ru.kontur.kinfra.logging.builtin
 import ru.kontur.kinfra.logging.LoggerFactory
 import ru.kontur.kinfra.logging.backend.LoggerBackend
 import ru.kontur.kinfra.logging.backend.slf4j.Slf4jBackend
-import ru.kontur.kinfra.logging.decor.MessageDecor
 import ru.kontur.kinfra.logging.decor.DefaultMessageDecor
-import kotlin.reflect.KClass
+import ru.kontur.kinfra.logging.decor.MessageDecor
 
 /**
  * Default logger factory that built into the library.

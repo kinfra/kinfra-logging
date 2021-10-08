@@ -25,7 +25,7 @@ import kotlin.reflect.KClass
  *
  *     * `getEmptyDecor()`: provides a [MessageDecor] to render context data in log messages.
  */
-abstract class LoggerFactory {
+public abstract class LoggerFactory {
 
     /**
      * Obtains a [Logger] with a given [name].
@@ -34,7 +34,7 @@ abstract class LoggerFactory {
      *
      * This method is thread safe. Calls [getLoggerBackend] internally.
      */
-    open fun getLogger(name: String): Logger {
+    public open fun getLogger(name: String): Logger {
         val backend = getLoggerBackend(name)
         return Logger(backend, this)
     }
@@ -44,7 +44,7 @@ abstract class LoggerFactory {
      *
      * This method is thread safe. Calls [getLoggerBackend] internally.
      */
-    fun getLogger(kClass: KClass<*>): Logger {
+    public open fun getLogger(kClass: KClass<*>): Logger {
         val name = requireNotNull(kClass.qualifiedName) {
             "Class $kClass does not have a fully qualified name"
         }
@@ -73,18 +73,18 @@ abstract class LoggerFactory {
      * Custom wrapping factories should extend this class to properly implement
      * new methods that may be added in the future.
      */
-    abstract class Wrapper : LoggerFactory() {
+    public abstract class Wrapper : LoggerFactory() {
 
         protected abstract val delegate: LoggerFactory
 
         override fun getLoggerBackend(name: String): LoggerBackend = delegate.getLoggerBackend(name)
 
-        override fun getEmptyDecor() = delegate.getEmptyDecor()
+        override fun getEmptyDecor(): MessageDecor = delegate.getEmptyDecor()
 
     }
 
     // for user extensions
-    companion object
+    public companion object
 
 }
 
@@ -92,7 +92,7 @@ abstract class LoggerFactory {
  * Obtains [Logger] instance to use in the current class (that is the class calling this method).
  */
 @Suppress("NOTHING_TO_INLINE")
-inline fun LoggerFactory.currentClassLogger(): Logger {
+public inline fun LoggerFactory.currentClassLogger(): Logger {
     /*
      * All internal callers of this function must be inline!
      * It is required for MethodHandles.lookup() to work correctly.

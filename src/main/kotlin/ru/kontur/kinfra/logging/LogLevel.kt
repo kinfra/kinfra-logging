@@ -3,7 +3,7 @@ package ru.kontur.kinfra.logging
 /**
  * Importance level of a log message.
  */
-enum class LogLevel {
+public enum class LogLevel {
     DEBUG,
     INFO,
     WARN,
@@ -11,6 +11,6 @@ enum class LogLevel {
     ;
 
     // for user extensions
-    companion object
+    public companion object
 
 }

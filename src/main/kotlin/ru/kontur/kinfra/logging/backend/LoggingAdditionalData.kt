@@ -3,19 +3,19 @@ package ru.kontur.kinfra.logging.backend
 /**
  * Additional data of a log event that accompanies a text message.
  */
-class LoggingAdditionalData(
-    val throwable: Throwable? = null
+public class LoggingAdditionalData(
+    public val throwable: Throwable? = null
 ) {
 
-    override fun toString() = buildString {
+    override fun toString(): String = buildString {
         append("{")
         throwable?.let { append("throwable=$it") }
         append("}")
     }
 
-    companion object {
+    public companion object {
 
-        val NONE = LoggingAdditionalData()
+        public val NONE: LoggingAdditionalData = LoggingAdditionalData()
 
     }
 

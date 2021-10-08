@@ -1,6 +1,6 @@
 package ru.kontur.kinfra.logging.backend
 
-class CallerInfo(
+public class CallerInfo(
     /**
      * The fully qualified name of the facade class called by user code.
      *
@@ -19,5 +19,5 @@ class CallerInfo(
      * At least one frame in some method of the class named [facadeClassName] must be on the stack
      * when the [LoggerBackend.log] is called.
      */
-    val facadeClassName: String
+    public val facadeClassName: String
 )

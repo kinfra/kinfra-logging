@@ -12,7 +12,7 @@ import ru.kontur.kinfra.logging.LoggingContext
  * In order to use custom LoggerBackend one should create custom [LoggerFactory] and return
  * the backend from [LoggerFactory.getLoggerBackend] method.
  */
-interface LoggerBackend {
+public interface LoggerBackend {
 
     /**
      * Determines if a message with a given [level] should be logged.
@@ -21,33 +21,33 @@ interface LoggerBackend {
      *
      * Implementation may use [LoggingContext.current] to make a decision.
      */
-    fun isEnabled(level: LogLevel): Boolean
+    public fun isEnabled(level: LogLevel): Boolean
 
     /**
      * Log a message.
      *
      * Implementation should not do additional filtering here, but do it in [isEnabled].
      */
-    fun log(request: LoggingRequest)
+    public fun log(request: LoggingRequest)
 
     /**
      * Implementation that do nothing.
      */
-    object Nop : LoggerBackend {
+    public object Nop : LoggerBackend {
 
         /**
          * Returns `false`.
          */
-        override fun isEnabled(level: LogLevel) = false
+        override fun isEnabled(level: LogLevel): Boolean = false
 
         /**
          * Does nothing.
          */
-        override fun log(request: LoggingRequest) = Unit
+        override fun log(request: LoggingRequest) {}
 
     }
 
     // for user extensions
-    companion object
+    public companion object
 
 }
