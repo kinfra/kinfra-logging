@@ -145,7 +145,7 @@ sealed class LoggingContext : CoroutineContext.Element {
         init {
             val currentValue = parent[element.key]
             require(currentValue == null) {
-                "Context already contains an element with key '$key'" +
+                "Context already contains an element with key '${element.key}'" +
                     " (current value: '$currentValue', new value: '${element.value}')"
             }
         }

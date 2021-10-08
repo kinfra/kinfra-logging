@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
     id 'jacoco'
     id 'org.jetbrains.kotlin.jvm' version '1.4.21'
-    id 'ru.kontur.kinfra.presets' version '1.4'
+    id 'ru.kontur.kinfra.presets' version '1.5'
     id 'me.champeau.gradle.jmh' version '0.5.3'
 }
 

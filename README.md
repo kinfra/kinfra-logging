@@ -16,6 +16,7 @@ It is a final class provided by the library, that has a bunch of convenient meth
 
 `LogLevel` is an enumeration describing the importance of a log message.
 There are 4 log levels:
+
 * `DEBUG`  
   Detailed messages that can help in debugging an application's subsystem.
   Such messages allow a developer to trace the execution path or figure out the current state of the system.
@@ -60,12 +61,12 @@ Contexts are immutable and hierarchical. A nested context contains all elements 
 
 ## Basic usage
 
-In order to log messages, one should define a `Logger`:  // todo: questionable
+In order to log messages, one should define a `Logger`:
 ```kotlin
 val logger = Logger.currentClass()
 ```
 This way, a `Logger` will be obtained from the default `LoggerFactory`.
-The logger will be tied to the class declaring this property.
+The logger will be named corresponding to the class or file declaring this property.
 
 There is a `Logger.log(level: LogLevel, error: Throwable? = null, messageBuilder: () -> String)` method
 that can be used for logging messages:
@@ -135,7 +136,7 @@ Result:
 ```
 
 It is incorrect to add to a context an element with a key that already present in the context.
-Execution of the following code with lead to an `IllegalStateException`:
+Execution of the following code with lead to an `IllegalArgumentException`:
 ```kotlin
 withLoggingContext("id", "foo") {
     withLoggingContext("id", "bar")
