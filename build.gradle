@@ -4,7 +4,7 @@ plugins {
     id 'jacoco'
     id 'org.jetbrains.kotlin.jvm' version '1.4.32'
     id 'ru.kontur.kinfra.presets' version '1.5'
-    id 'me.champeau.gradle.jmh' version '0.5.3'
+    id 'me.champeau.jmh' version '0.6.6'
 }
 
 ext {
@@ -23,7 +23,7 @@ ext {
 }
 
 group = "ru.kontur.kinfra"
-version = "1.0"
+version = "1.1"
 
 dependencies {
     implementation libs.slf4jApi
@@ -71,7 +71,7 @@ publishing {
 }
 
 jmh {
-    include = ["benchmarks.SimpleLogging.*"]
+    includes = ["benchmarks.*"]
     benchmarkMode = ["avgt"]
     batchSize = 100_000
     iterations = 10
